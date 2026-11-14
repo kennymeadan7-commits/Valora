@@ -165,6 +165,8 @@ describe("webhook", () => {
     const d = await ctx.engine.get(id);
     expect(d.state).toBe("unlocked");
     expect(d.downloadUrl).toContain("https://api.test/deliverables/");
+    // Le lien doit viser l'endpoint qui sert réellement le fichier.
+    expect(d.downloadUrl).toContain("/content?token=");
   });
 
   it("un webhook reçu deux fois ne débloque qu'une fois", async () => {

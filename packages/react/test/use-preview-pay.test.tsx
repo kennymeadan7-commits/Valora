@@ -259,3 +259,25 @@ describe("usePreviewPay — polling", () => {
     expect(appels(fetchImpl)).toHaveLength(1);
   });
 });
+
+describe("usePreviewPay — fetch global", () => {
+  it("appelle `globalThis.fetch` comme méthode (pas de référence détachée)", async () => {
+    const contexte: unknown[] = [];
+    const original = globalThis.fetch;
+    globalThis.fetch = function (this: unknown) {
+      contexte.push(this);
+      return Promise.resolve(reponseJson(livrable()));
+    } as unknown as typeof fetch;
+
+    try {
+      const { result } = renderHook(() => usePreviewPay("dlv_1"));
+      await waitFor(() => expect(result.current.status).toBe("previewed"));
+    } finally {
+      globalThis.fetch = original;
+    }
+
+    // Sans wrapper, `this` serait `undefined` et Chrome lèverait
+    // « Illegal invocation ».
+    expect(contexte[0]).toBe(globalThis);
+  });
+});

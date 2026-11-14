@@ -84,6 +84,13 @@ const INITIAL_STATE: InternalState = {
   loading: false,
 };
 
+/**
+ * `fetch` global, appelé comme méthode de `globalThis`. Une référence détachée
+ * (`const f = window.fetch; f(...)`) lève `Illegal invocation` dans Chrome.
+ */
+const defaultFetch: typeof fetch = (input, init) =>
+  globalThis.fetch(input, init);
+
 const DEFAULT_POLL_INTERVAL_MS = 3_000;
 
 /** Supprime un éventuel `/` final pour composer des URLs propres. */
@@ -162,9 +169,11 @@ export function usePreviewPay(
   const [state, setState] = useState<InternalState>(INITIAL_STATE);
 
   // `fetch` est lu via une ref : une fonction recréée à chaque rendu par
-  // l'intégrateur ne doit pas relancer les effets.
-  const fetchRef = useRef<typeof fetch>(options.fetchImpl ?? globalThis.fetch);
-  fetchRef.current = options.fetchImpl ?? globalThis.fetch;
+  // l'intégrateur ne doit pas relancer les effets. Le wrapper par défaut
+  // conserve `this = globalThis` : sans lui, appeler `window.fetch` détaché
+  // lève « Illegal invocation » dans le navigateur.
+  const fetchRef = useRef<typeof fetch>(options.fetchImpl ?? defaultFetch);
+  fetchRef.current = options.fetchImpl ?? defaultFetch;
 
   const aliveRef = useRef(true);
 

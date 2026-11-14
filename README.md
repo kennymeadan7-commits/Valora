@@ -19,7 +19,7 @@ d'abord, on paie le livrable, pas le mois**.
 | 1 | Cœur TypeScript testé sans réseau | ✅ |
 | 2 | Storage PostgreSQL + API NestJS | ✅ storage Prisma, module NestJS, app de démo |
 | 3 | FedaPay sandbox + webhooks | provider + sandbox validés, endpoint à rebrancher sur un tunnel |
-| 4 | Paywall React + démo CV | paywall livré, démo web en cours |
+| 4 | Paywall React + démo CV | ✅ paywall + démo web |
 
 ## Démarrage
 

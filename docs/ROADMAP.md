@@ -30,14 +30,14 @@ contenu complet n'apparaît dans aucune réponse avant `unlocked`.
 - [x] `@previewpay/provider-fedapay` : transactions, jeton, direct MTN/Moov,
       vérification de signature sur corps brut, anti-rejeu
 - [x] Schéma réel du webhook relevé et documenté
-- [ ] Rebrancher l'endpoint sur le tunnel HTTPS local
+- [ ] Rebrancher l'endpoint sur le tunnel HTTPS local (le code est prêt)
 - [ ] Rejouer un webhook depuis le tableau de bord (test du doublon)
 - [ ] Paiement direct `mtn_benin` / `moov_benin` de bout en bout
 
 ## Jalon 4 — interface et démo
 
 - [x] `@previewpay/react` : `usePreviewPay` (polling borné), `<PreviewPaywall />` (17 tests)
-- [ ] `apps/web` : parcours CV → aperçu filigrané → 200 F → téléchargement (en cours)
+- [x] `apps/web` : parcours CV → aperçu filigrané → 200 F → téléchargement (vérifié dans Chrome)
 - [ ] Métriques : taux de validation, taux de refus, marge, délai, échecs
 
 ## Dette technique connue

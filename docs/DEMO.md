@@ -39,6 +39,12 @@ Statuts acceptés : `pending`, `approved`, `declined`, `canceled`, `expired`.
 `declined`, `canceled` et `expired` ramènent le livrable à `previewed` :
 il est relançable sans frais.
 
+## Interface web
+
+`http://localhost:5173` — formulaire, aperçu filigrané, paywall, et un bloc
+« mode démo » pour simuler Approuver / Refuser / Expirer. Le front appelle
+l'API en même origine via le proxy Vite (`/deliverables`, `/demo`).
+
 ## Raccourcis utiles
 
 ```sh

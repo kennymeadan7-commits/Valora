@@ -9,8 +9,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@previewpay/core": "workspace:*",
-    "react": "^19.3.1"
+    "@previewpay/core": "workspace:*"
   },
   "peerDependencies": {
     "react": ">=19"
@@ -21,6 +20,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "jsdom": "^31.0.1",
-    "react-dom": "^19.3.1"
+    "react-dom": "^19.3.1",
+    "react": "^19.3.1"
   }
 }

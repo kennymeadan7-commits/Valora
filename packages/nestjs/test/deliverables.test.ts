@@ -323,7 +323,7 @@ describe("GET /deliverables/:id/download", () => {
       .get(`/deliverables/${created.id}/download`)
       .expect(200);
     expect(download.body.url).toContain(
-      `https://api.test/deliverables/${created.id}/download?token=`,
+      `https://api.test/deliverables/${created.id}/content?token=`,
     );
     expect(new Date(download.body.expiresAt).getTime()).toBeGreaterThan(
       Date.now(),

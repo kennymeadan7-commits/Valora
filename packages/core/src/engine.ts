@@ -302,7 +302,7 @@ export class PreviewPay {
       this.secret,
     );
     return {
-      url: `${this.baseUrl}/deliverables/${d.id}/download?token=${encodeURIComponent(token)}`,
+      url: `${this.baseUrl}/deliverables/${d.id}/content?token=${encodeURIComponent(token)}`,
       expiresAt,
     };
   }
@@ -359,7 +359,7 @@ export class PreviewPay {
       regenerations: d.regenerations,
       maxRegenerations: d.maxRegenerations,
       downloadUrl: unlocked
-        ? `${this.baseUrl}/deliverables/${d.id}/download?token=${encodeURIComponent(token)}`
+        ? `${this.baseUrl}/deliverables/${d.id}/content?token=${encodeURIComponent(token)}`
         : null,
       paymentUrl: d.paymentUrl ?? null,
     };

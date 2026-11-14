@@ -38,6 +38,9 @@
     "packages/*/test/**/*.tsx",
     "apps/api/src/**/*.ts",
     "apps/api/test/**/*.ts",
+    "apps/web/src/**/*.ts",
+    "apps/web/src/**/*.tsx",
+    "apps/web/vite.config.ts",
     "scripts/**/*.ts",
     "vitest.config.ts"
   ]
