@@ -28,6 +28,9 @@
       ],
       "@previewpay/storage-prisma": [
         "packages/storage-prisma/src/index.ts"
+      ],
+      "@previewpay/express": [
+        "packages/express/src/index.ts"
       ]
     }
   },

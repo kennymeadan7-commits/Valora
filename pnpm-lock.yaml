@@ -288,6 +288,31 @@ importers:
 
   packages/core: {}
 
+  packages/express:
+    dependencies:
+      '@previewpay/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@previewpay/provider-mock':
+        specifier: workspace:*
+        version: link:../provider-mock
+      '@previewpay/storage-memory':
+        specifier: workspace:*
+        version: link:../storage-memory
+      '@types/express':
+        specifier: 5.0.6
+        version: 5.0.6
+      '@types/supertest':
+        specifier: ^7.2.1
+        version: 7.2.1
+      express:
+        specifier: 5.3.0
+        version: 5.3.0
+      supertest:
+        specifier: ^7.3.2
+        version: 7.3.2
+
   packages/nestjs:
     dependencies:
       '@previewpay/core':

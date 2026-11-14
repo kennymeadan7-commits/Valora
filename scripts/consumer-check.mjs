@@ -5,6 +5,7 @@
  * - ESM : parcours complet create → pay → webhook signé → download → jeton ;
  * - CommonJS : `require()` de chaque paquet ;
  * - NestJS : application réelle avec `PreviewPayModule`, appels HTTP ;
+ * - Express : routeur réel, jusqu'au contenu servi par jeton signé ;
  * - React : rendu serveur du paywall ;
  * - Prisma : génération du client à partir du schéma publié ;
  * - TypeScript : types résolus en `nodenext` et en `bundler` ;
@@ -56,6 +57,8 @@ run("npm", [
   "@nestjs/common@^12.5.0",
   "@nestjs/core@^12.5.0",
   "@nestjs/platform-express@^12.5.0",
+  "express@^5.1.0",
+  "@types/express@^5",
   "reflect-metadata@^0.2.2",
   "rxjs@^7.8.2",
   "react@^19.0.0",
@@ -120,6 +123,7 @@ assert.equal(typeof require("@previewpay/storage-memory").MemoryStorage, "functi
 assert.equal(typeof require("@previewpay/provider-mock").MockPaymentProvider, "function");
 assert.equal(typeof require("@previewpay/provider-fedapay").FedaPayProvider, "function");
 assert.equal(typeof require("@previewpay/nestjs").PreviewPayModule, "function");
+assert.equal(typeof require("@previewpay/express").createPreviewPayRouter, "function");
 assert.equal(typeof require("@previewpay/react").usePreviewPay, "function");
 console.log("✓ CommonJS : require() de chaque paquet");
 `,
@@ -179,6 +183,50 @@ console.log("✓ NestJS : module réel, création → 429 → 402 → paiement �
 );
 run("node", ["nest.mjs"]);
 
+/* ------------------------------------------------------------ Express */
+write(
+  "express.mjs",
+  `
+import assert from "node:assert/strict";
+import express from "express";
+import { PreviewPay } from "@previewpay/core";
+import { MemoryStorage } from "@previewpay/storage-memory";
+import { MockPaymentProvider } from "@previewpay/provider-mock";
+import { createPreviewPayRouter } from "@previewpay/express";
+
+const provider = new MockPaymentProvider({ secret: "s" });
+const previewPay = new PreviewPay({
+  storage: new MemoryStorage(),
+  provider,
+  pricing: { cv: 200 },
+  preview: { makePreview: async (c) => ({ text: String(c).slice(0, 5) }) },
+  download: { secret: "dl", baseUrl: "http://localhost" },
+});
+const app = express();
+app.use(createPreviewPayRouter({ previewPay, internalApiKey: "k", serveContent: (d, _q, res) => res.send(d.content) }));
+app.use(express.json());
+const server = app.listen(0);
+await new Promise((r) => server.once("listening", r));
+const base = "http://127.0.0.1:" + server.address().port;
+const post = (path, body, headers = {}) =>
+  fetch(base + path, { method: "POST", headers: { "content-type": "application/json", ...headers }, body: typeof body === "string" ? body : JSON.stringify(body) });
+
+const created = await post("/deliverables", { type: "cv", content: "SECRET COMPLET" }, { "x-internal-key": "k" }).then((r) => r.json());
+assert.equal(created.state, "previewed");
+assert.equal((await fetch(base + "/deliverables/" + created.id + "/download")).status, 402);
+await post("/deliverables/" + created.id + "/pay", { phone: "+22990000000", operator: "mtn_benin" });
+provider.setStatus("mock_pay_1", "approved");
+const hook = provider.buildWebhook("mock_pay_1");
+assert.equal((await post("/webhooks/fedapay", hook.rawBody.toString(), hook.headers)).status, 200);
+const link = await fetch(base + "/deliverables/" + created.id + "/download").then((r) => r.json());
+const content = await fetch(base + new URL(link.url).pathname + new URL(link.url).search).then((r) => r.text());
+assert.equal(content, "SECRET COMPLET");
+server.close();
+console.log("✓ Express : routeur réel, 402 → paiement → webhook → contenu servi par jeton");
+`,
+);
+run("node", ["express.mjs"]);
+
 /* -------------------------------------------------------------- React */
 write(
   "react.mjs",
@@ -222,6 +270,8 @@ import { MockPaymentProvider } from "@previewpay/provider-mock";
 import { FedaPayProvider, type FedaPayOptions } from "@previewpay/provider-fedapay";
 import { createPrismaStorage } from "@previewpay/storage-prisma";
 import { PreviewPayModule, type PreviewPayModuleOptions } from "@previewpay/nestjs";
+import { createPreviewPayRouter, type PreviewPayRouterOptions } from "@previewpay/express";
+import type { Router } from "express";
 import { usePreviewPay, PreviewPaywall, type PreviewPaywallProps } from "@previewpay/react";
 import { describeStorageContract } from "@previewpay/testing";
 
@@ -240,7 +290,9 @@ const pp = new PreviewPay({
 const p: Promise<PublicDeliverable> = pp.create({ type: "cv", content: "x", ownerId: "u" });
 const moduleOptions: PreviewPayModuleOptions = { storage, provider: fedapay, pricing: { cv: 1 }, preview: { makePreview: async () => ({}) } };
 const props: PreviewPaywallProps = { deliverableId: "d" };
-void [p, prismaStorage, moduleOptions, props, PreviewPayModule, usePreviewPay, PreviewPaywall, describeStorageContract, PreviewLimitError];
+const routerOptions: PreviewPayRouterOptions = { previewPay: pp, rateLimit: false };
+const router: Router = createPreviewPayRouter(routerOptions);
+void [p, prismaStorage, moduleOptions, props, router, PreviewPayModule, usePreviewPay, PreviewPaywall, describeStorageContract, PreviewLimitError];
 `,
 );
 for (const resolution of ["nodenext", "bundler"]) {

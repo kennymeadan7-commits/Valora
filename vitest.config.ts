@@ -14,6 +14,7 @@ export default defineConfig({
       "@previewpay/provider-fedapay": pkg("provider-fedapay"),
       "@previewpay/nestjs": pkg("nestjs"),
       "@previewpay/react": pkg("react"),
+      "@previewpay/express": pkg("express"),
     },
   },
   test: {

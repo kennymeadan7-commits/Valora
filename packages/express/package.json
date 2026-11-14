@@ -1,0 +1,73 @@
+{
+  "name": "@previewpay/express",
+  "version": "0.1.0",
+  "description": "Routeur Express PreviewPay : les 6 endpoints (livrables, paiement, refus, téléchargement signé, webhook) sans NestJS.",
+  "license": "MIT",
+  "keywords": [
+    "previewpay",
+    "mobile-money",
+    "xof",
+    "pay-per-deliverable",
+    "ai",
+    "express",
+    "middleware"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kennymeadan7-commits/Valora.git",
+    "directory": "packages/express"
+  },
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node ../../scripts/build-packages.mjs express",
+    "prepack": "node ../../scripts/build-packages.mjs express"
+  },
+  "dependencies": {
+    "@previewpay/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "express": "^4.18.0 || ^5.0.0"
+  },
+  "devDependencies": {
+    "express": "5.3.0",
+    "@types/express": "5.0.6",
+    "supertest": "^7.3.2",
+    "@types/supertest": "^7.2.1",
+    "@previewpay/storage-memory": "workspace:*",
+    "@previewpay/provider-mock": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "import": {
+          "types": "./dist/index.d.ts",
+          "default": "./dist/index.js"
+        },
+        "require": {
+          "types": "./dist/index.d.cts",
+          "default": "./dist/index.cjs"
+        }
+      },
+      "./package.json": "./package.json"
+    }
+  }
+}
