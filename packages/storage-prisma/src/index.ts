@@ -220,7 +220,13 @@ export class PrismaStorage implements Storage {
   }
 }
 
-/** Fabrique l'adaptateur autour d'un `PrismaClient` déjà configuré. */
-export function createPrismaStorage(prisma: PrismaClient): PrismaStorage {
+/**
+ * Fabrique l'adaptateur. Sans argument, un `PrismaClient` est créé à partir de
+ * `DATABASE_URL` ; passer un client existant permet de partager la connexion
+ * (et de la fermer) avec l'application hôte.
+ */
+export function createPrismaStorage(
+  prisma: PrismaClient = new PrismaClient(),
+): PrismaStorage {
   return new PrismaStorage(prisma);
 }

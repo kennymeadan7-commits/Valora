@@ -2,15 +2,19 @@ import type { Pricing, PreviewStrategy } from "@previewpay/core";
 import { FedaPayProvider } from "@previewpay/provider-fedapay";
 import { MockPaymentProvider } from "@previewpay/provider-mock";
 import { MemoryStorage } from "@previewpay/storage-memory";
+import { createPrismaStorage } from "@previewpay/storage-prisma";
 import type { PaymentProvider, Storage } from "@previewpay/core";
 
 /** Grille tarifaire de la démo, en entiers XOF. */
 export const DEMO_PRICING: Pricing = { cv: 200, presentation: 500 };
 
+export type StorageKind = "memory" | "prisma";
+
 export interface AppConfig {
   port: number;
   webOrigin: string;
   storage: Storage;
+  storageKind: StorageKind;
   provider: PaymentProvider;
   pricing: Pricing;
   preview: PreviewStrategy;
@@ -69,18 +73,32 @@ function buildProvider(): { provider: PaymentProvider; name: "mock" | "fedapay" 
   };
 }
 
+/** `STORAGE=prisma` bascule la démo sur PostgreSQL (docker compose up -d db). */
+function buildStorage(): { storage: Storage; kind: StorageKind } {
+  const mode = (process.env["STORAGE"] ?? "memory").toLowerCase();
+  if (mode === "prisma") {
+    return { storage: createPrismaStorage(), kind: "prisma" };
+  }
+  if (mode !== "memory") {
+    throw new Error(`STORAGE inconnu « ${mode} » (memory | prisma)`);
+  }
+  return { storage: new MemoryStorage(), kind: "memory" };
+}
+
 /**
  * Configuration de l'app de démo. Tout vient de l'environnement : aucun secret
  * en dur, et le mode `mock` est le défaut pour que la démo tourne hors ligne.
  */
 export function loadConfig(): AppConfig {
   const { provider, name } = buildProvider();
+  const { storage, kind } = buildStorage();
   const port = Number(process.env["PORT"] ?? 3000);
 
   return {
     port,
     webOrigin: process.env["WEB_ORIGIN"] ?? "http://localhost:5173",
-    storage: new MemoryStorage(),
+    storage,
+    storageKind: kind,
     provider,
     pricing: DEMO_PRICING,
     preview: new TextPreviewStrategy(),

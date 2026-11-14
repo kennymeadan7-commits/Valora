@@ -114,7 +114,11 @@ export class DemoController {
   }
 
   @Get("health")
-  health(): { status: string; provider: string } {
-    return { status: "ok", provider: config.providerName };
+  health(): { status: string; provider: string; storage: string } {
+    return {
+      status: "ok",
+      provider: config.providerName,
+      storage: config.storageKind,
+    };
   }
 }

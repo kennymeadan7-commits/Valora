@@ -18,6 +18,7 @@
     "@previewpay/provider-mock": "workspace:*",
     "@previewpay/storage-memory": "workspace:*",
     "@previewpay/storage-prisma": "workspace:*",
+    "@prisma/client": "6.19.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
   },

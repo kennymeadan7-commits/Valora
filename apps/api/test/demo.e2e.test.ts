@@ -164,6 +164,6 @@ describe("démo API — parcours CV", () => {
 
   it("expose un healthcheck avec le fournisseur actif", async () => {
     const res = await request(server).get("/demo/health").expect(200);
-    expect(res.body).toEqual({ status: "ok", provider: "mock" });
+    expect(res.body).toEqual({ status: "ok", provider: "mock", storage: "memory" });
   });
 });

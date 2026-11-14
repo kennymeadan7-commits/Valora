@@ -3,6 +3,16 @@
 Deux processus : l'API NestJS (port 3000) et le front Vite (port 5173).
 La démo tourne **sans réseau** et sans clé FedaPay (`PAYMENT_PROVIDER=mock`).
 
+Deux persistances au choix, par variable d'environnement :
+
+| `STORAGE` | Effet |
+| --- | --- |
+| `memory` (défaut) | `MemoryStorage` — rien à installer |
+| `prisma` | `PrismaStorage` sur PostgreSQL (`docker compose up -d db`, puis `pnpm --filter @previewpay/storage-prisma migrate`) |
+
+`GET /demo/health` renvoie `{ status, provider, storage }` : c'est le moyen le
+plus rapide de vérifier sur quel backend la démo tourne.
+
 ## Lancer
 
 ```sh

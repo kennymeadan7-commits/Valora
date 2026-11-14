@@ -17,6 +17,10 @@ export default defineConfig({
     },
   },
   test: {
+    // Les tests PostgreSQL (`storage-prisma`, `apps/api`) partagent la même
+    // base et la vident entre deux cas : les exécuter en parallèle les rend
+    // instables. Sérialiser les fichiers est le prix de cette garantie.
+    fileParallelism: false,
     include: [
       "packages/*/test/**/*.test.{ts,tsx}",
       "apps/api/test/**/*.test.ts",
