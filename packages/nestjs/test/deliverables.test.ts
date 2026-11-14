@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   createDeliverable,
   createTestApp,
+  paymentIdOf,
   DOWNLOAD_SECRET,
   FULL_CV,
   INTERNAL_KEY,
@@ -126,6 +127,24 @@ describe("limite d'aperçus par utilisateur", () => {
       .set("x-internal-key", INTERNAL_KEY)
       .send({ type: "cv", content: FULL_CV, ownerId: 42 })
       .expect(400);
+  });
+});
+
+describe("réconciliation sans webhook", () => {
+  it("GET débloque un paiement approuvé dont le webhook ne vient jamais", async () => {
+    const app = await boot({ reconcile: { afterMs: 0, everyMs: 0 } });
+    const { id } = await createDeliverable(app);
+    await app
+      .http()
+      .post(`/deliverables/${id}/pay`)
+      .send({ phone: "+22990000000", operator: "mtn_benin" })
+      .expect(200);
+
+    app.provider.setStatus(await paymentIdOf(app, id), "approved");
+    const read = await app.http().get(`/deliverables/${id}`).expect(200);
+    expect(read.body.state).toBe("unlocked");
+    expect(read.body).not.toHaveProperty("content");
+    await app.http().get(`/deliverables/${id}/download`).expect(200);
   });
 });
 

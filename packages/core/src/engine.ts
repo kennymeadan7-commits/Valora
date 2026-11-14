@@ -36,6 +36,11 @@ export interface PreviewPayOptions {
   download: { secret: string; baseUrl: string; ttlSeconds?: number };
   /** Limites anti-abus (désactivées par défaut). */
   limits?: PreviewPayLimits;
+  /**
+   * Réconciliation automatique des paiements en attente (activée par défaut).
+   * `false` la désactive : il faut alors appeler `syncPayment` soi-même.
+   */
+  reconcile?: false | Partial<ReconcileOptions>;
   now?: () => Date;
   generateId?: () => string;
 }
@@ -48,6 +53,20 @@ export interface PreviewPayLimits {
    */
   previewsPerOwnerPerDay?: number;
 }
+
+/**
+ * Filet de sécurité quand le webhook n'arrive pas (perdu, retardé, ou statut
+ * `expired` qui n'a pas de webhook) : lire un livrable `payment_pending`
+ * déclenche une relecture du statut chez le fournisseur.
+ */
+export interface ReconcileOptions {
+  /** Ancienneté minimale du paiement avant la première relecture (laisse sa chance au webhook). */
+  afterMs: number;
+  /** Intervalle minimal entre deux relectures d'un même livrable. */
+  everyMs: number;
+}
+
+export const DEFAULT_RECONCILE: ReconcileOptions = { afterMs: 10_000, everyMs: 10_000 };
 
 export interface CreateDeliverableInput {
   type: string;
@@ -93,6 +112,9 @@ export class PreviewPay {
   private readonly now: () => Date;
   private readonly generateId: () => string;
   private readonly previewsPerOwnerPerDay: number | null;
+  private readonly reconcile: ReconcileOptions | null;
+  /** Dernière relecture par livrable (mémoire du processus, purgée hors attente). */
+  private readonly lastReconcile = new Map<string, number>();
 
   constructor(opts: PreviewPayOptions) {
     this.storage = opts.storage;
@@ -111,6 +133,15 @@ export class PreviewPay {
       throw new TypeError("limits.previewsPerOwnerPerDay doit être un entier ≥ 1");
     }
     this.previewsPerOwnerPerDay = perDay ?? null;
+
+    this.reconcile =
+      opts.reconcile === false ? null : { ...DEFAULT_RECONCILE, ...(opts.reconcile ?? {}) };
+    if (
+      this.reconcile &&
+      (!(this.reconcile.afterMs >= 0) || !(this.reconcile.everyMs >= 0))
+    ) {
+      throw new TypeError("reconcile.afterMs et reconcile.everyMs doivent être ≥ 0");
+    }
   }
 
   // ---------------------------------------------------------------- création
@@ -178,8 +209,16 @@ export class PreviewPay {
 
   // ----------------------------------------------------------------- lecture
 
+  /**
+   * Vue publique. Si le livrable attend un paiement depuis au moins
+   * `reconcile.afterMs`, le statut est relu chez le fournisseur (au plus une
+   * fois par `reconcile.everyMs`) : un webhook perdu ou une expiration ne
+   * laissent plus le livrable bloqué. Une panne du fournisseur ne fait jamais
+   * échouer la lecture.
+   */
   async get(id: string): Promise<PublicDeliverable> {
-    return this.toPublic(await this.load(id));
+    const d = await this.load(id);
+    return this.toPublic(await this.reconcileIfDue(d));
   }
 
   // ------------------------------------------------------------------ refus
@@ -373,6 +412,30 @@ export class PreviewPay {
         ...meta,
         cause: `${meta.cause}:relaunchable`,
       });
+    }
+  }
+
+  private async reconcileIfDue(d: Deliverable): Promise<Deliverable> {
+    if (d.state !== "payment_pending" || !d.paymentId || !this.reconcile) {
+      this.lastReconcile.delete(d.id);
+      return d;
+    }
+    const now = this.now().getTime();
+    if (now - d.updatedAt.getTime() < this.reconcile.afterMs) return d;
+    const last = this.lastReconcile.get(d.id);
+    if (last !== undefined && now - last < this.reconcile.everyMs) return d;
+
+    this.lastReconcile.set(d.id, now);
+    try {
+      const status = await this.provider.getPaymentStatus(d.paymentId);
+      await this.applyPaymentStatus(d, status, {
+        cause: `payment.reconciled:${status}`,
+        paymentId: d.paymentId,
+      });
+      return await this.load(d.id);
+    } catch {
+      // Fournisseur injoignable : on renvoie l'état connu, on retentera.
+      return d;
     }
   }
 

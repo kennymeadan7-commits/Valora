@@ -2,6 +2,7 @@ import type {
   PaymentProvider,
   PreviewPayLimits,
   PreviewPayOptions,
+  ReconcileOptions,
   Pricing,
   PreviewStrategy,
   Storage,
@@ -45,6 +46,12 @@ export interface PreviewPayModuleOptions {
    * s'applique aux créations qui portent un `ownerId` (429 au-delà).
    */
   limits?: PreviewPayLimits;
+  /**
+   * Réconciliation des paiements en attente à la lecture de
+   * `GET /deliverables/:id` (webhook perdu, expiration). Activée par défaut
+   * (`{ afterMs: 10000, everyMs: 10000 }`) ; `false` la désactive.
+   */
+  reconcile?: false | Partial<ReconcileOptions>;
   /**
    * Si fourni, `POST /deliverables` exige l'en-tête `x-internal-key` égal à
    * cette valeur. Absent : la garde est désactivée (à réserver au
@@ -120,6 +127,7 @@ export function resolveOptions(
       ? { maxRegenerations: options.maxRegenerations }
       : {}),
     ...(options.limits ? { limits: options.limits } : {}),
+    ...(options.reconcile !== undefined ? { reconcile: options.reconcile } : {}),
     ...(options.now ? { now: options.now } : {}),
     ...(options.generateId ? { generateId: options.generateId } : {}),
   };

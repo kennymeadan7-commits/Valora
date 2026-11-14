@@ -39,6 +39,7 @@ const previewPay = new PreviewPay({
   download: { secret: process.env.PREVIEWPAY_DOWNLOAD_SECRET!, baseUrl: "https://api.example.com" },
   maxRegenerations: 2,
   limits: { previewsPerOwnerPerDay: 5 },
+  reconcile: { afterMs: 10_000, everyMs: 10_000 }, // valeurs par défaut
 });
 
 // 1. Votre agent a généré le livrable : le SDK le garde et renvoie l'aperçu.
@@ -70,8 +71,14 @@ draft ──> previewed ──pay──> payment_pending ──approved──> u
           rejected   (après `maxRegenerations` régénérations)
 ```
 
-`syncPayment(id)` réconcilie un paiement sans webhook (statut `expired`,
-webhook perdu). Chaque transition acceptée écrit une entrée de journal
+Si le webhook n'arrive jamais (perdu, retardé, ou statut `expired` qui n'a pas
+de webhook), le livrable ne reste pas bloqué : **lire** un livrable
+`payment_pending` depuis plus de `reconcile.afterMs` (10 s par défaut) relit le
+statut chez le fournisseur, au plus une fois par `reconcile.everyMs` (10 s).
+Le paywall React scrutant l'état pendant l'attente, la réconciliation se fait
+d'elle-même tant que l'utilisateur garde la page ouverte. Une panne du
+fournisseur ne fait jamais échouer la lecture. `reconcile: false` désactive ce
+comportement ; `syncPayment(id)` reste disponible pour un traitement planifié. Chaque transition acceptée écrit une entrée de journal
 append-only (`from`, `to`, `at`, `cause`, `eventId` / `paymentId`).
 
 ## API
@@ -79,7 +86,7 @@ append-only (`from`, `to`, `at`, `cause`, `eventId` / `paymentId`).
 | Méthode | Effet |
 | --- | --- |
 | `create({ type, content, ownerId?, maxRegenerations? })` | fige le prix, produit l'aperçu, état `previewed` |
-| `get(id)` | vue publique (`PublicDeliverable`) |
+| `get(id)` | vue publique (`PublicDeliverable`) ; réconcilie un paiement en attente |
 | `pay(id, { phone, operator })` | crée le paiement, état `payment_pending` |
 | `reject(id, reason)` | régénère l'aperçu dans la limite, sinon `rejected` (sans frais) |
 | `handleWebhook(rawBody, headers)` | idempotent, revérifie le statut avant tout déblocage |

@@ -81,6 +81,7 @@ répond 500 avec un message explicite.
 | `internalApiKey` | active la garde `x-internal-key` | désactivée |
 | `rateLimit` | `{ max, windowMs }` ou `false` | `{ max: 5, windowMs: 60000 }` |
 | `limits` | `{ previewsPerOwnerPerDay }` — aperçus gratuits par `ownerId` sur 24 h | désactivée |
+| `reconcile` | relecture du statut chez le fournisseur quand `GET /deliverables/:id` tombe sur un paiement en attente (webhook perdu, expiration) ; `false` pour désactiver | `{ afterMs: 10000, everyMs: 10000 }` |
 | `now`, `generateId` | horloge / générateur d'id (tests) | cœur |
 
 Les erreurs de configuration (option manquante, secret absent, `rateLimit.max`

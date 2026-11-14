@@ -320,3 +320,95 @@ describe("limite d'aperçus par utilisateur", () => {
     expect(() => limited(0)).toThrow(TypeError);
   });
 });
+
+describe("réconciliation des paiements en attente", () => {
+  function pending(reconcile?: false | { afterMs?: number; everyMs?: number }) {
+    let now = new Date("2026-11-14T08:00:00.000Z");
+    const storage = new MemoryStorage();
+    const provider = new MockPaymentProvider({ secret: "mock_secret" });
+    let calls = 0;
+    const original = provider.getPaymentStatus.bind(provider);
+    provider.getPaymentStatus = async (id: string) => {
+      calls += 1;
+      return original(id);
+    };
+    const engine = new PreviewPay({
+      storage,
+      provider,
+      preview: new TruncatePreview(),
+      pricing: PRICING,
+      download: { secret: SECRET, baseUrl: "https://api.test" },
+      now: () => now,
+      ...(reconcile === undefined ? {} : { reconcile }),
+    });
+    return {
+      engine,
+      provider,
+      storage,
+      calls: () => calls,
+      advance: (ms: number) => (now = new Date(now.getTime() + ms)),
+      async start() {
+        const d = await engine.create({ type: "cv", content: FULL_CV });
+        await engine.pay(d.id, { phone: "+22990000000", operator: "mtn_benin" });
+        const paymentId = (await storage.getDeliverable(d.id))!.paymentId!;
+        return { id: d.id, paymentId };
+      },
+    };
+  }
+
+  it("débloque à la lecture quand le webhook n'est jamais arrivé", async () => {
+    const t = pending();
+    const { id, paymentId } = await t.start();
+    t.provider.setStatus(paymentId, "approved");
+
+    // Trop tôt : on laisse sa chance au webhook, aucun appel au fournisseur.
+    expect((await t.engine.get(id)).state).toBe("payment_pending");
+    expect(t.calls()).toBe(0);
+
+    t.advance(10_000);
+    const read = await t.engine.get(id);
+    expect(read.state).toBe("unlocked");
+    expect(read.downloadUrl).not.toBeNull();
+    const journal = await t.storage.listJournal(id);
+    expect(journal.at(-1)).toMatchObject({ to: "unlocked", cause: "payment.reconciled:approved", paymentId });
+  });
+
+  it("détecte une expiration (aucun webhook) et rend le livrable relançable", async () => {
+    const t = pending();
+    const { id, paymentId } = await t.start();
+    t.provider.setStatus(paymentId, "expired");
+    t.advance(15_000);
+    expect((await t.engine.get(id)).state).toBe("previewed");
+  });
+
+  it("limite la fréquence des relectures par livrable", async () => {
+    const t = pending({ afterMs: 0, everyMs: 10_000 });
+    const { id } = await t.start();
+    await t.engine.get(id);
+    await t.engine.get(id);
+    t.advance(5_000);
+    await t.engine.get(id);
+    expect(t.calls()).toBe(1);
+    t.advance(5_000);
+    await t.engine.get(id);
+    expect(t.calls()).toBe(2);
+  });
+
+  it("une panne du fournisseur ne fait pas échouer la lecture", async () => {
+    const t = pending({ afterMs: 0 });
+    const { id } = await t.start();
+    t.provider.getPaymentStatus = async () => {
+      throw new Error("FedaPay injoignable");
+    };
+    expect((await t.engine.get(id)).state).toBe("payment_pending");
+  });
+
+  it("peut être désactivée", async () => {
+    const t = pending(false);
+    const { id, paymentId } = await t.start();
+    t.provider.setStatus(paymentId, "approved");
+    t.advance(60_000);
+    expect((await t.engine.get(id)).state).toBe("payment_pending");
+    expect(t.calls()).toBe(0);
+  });
+});
