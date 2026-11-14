@@ -18,10 +18,10 @@ contenu complet n'apparaît dans aucune réponse avant `unlocked`.
 
 - [ ] `@previewpay/storage-prisma` + schéma Prisma (Deliverable, JournalEntry,
       EventRecord) et migration initiale
-- [x] `@previewpay/nestjs` — 6 endpoints (agent en cours)
+- [x] `@previewpay/nestjs` — 6 endpoints, webhook `rawBody`, garde interne, rate limit (25 tests)
 - [ ] `apps/api` — application de démo NestJS (`rawBody: true`), config par env
 - [ ] Tests d'intégration API + PostgreSQL (Docker)
-- [ ] Suite de contrat d'adaptateur (`@previewpay/testing`)
+- [x] Suite de contrat d'adaptateur (`@previewpay/testing`)
 
 ## Jalon 3 — FedaPay sandbox
 
