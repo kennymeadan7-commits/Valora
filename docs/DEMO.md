@@ -27,16 +27,36 @@ pnpm --filter @previewpay/demo-web dev     # → http://localhost:5173
 
 `GET /demo/health` renvoie le fournisseur actif.
 
-## Parcours
+## Parcours (interface « Valora CV »)
 
-1. `POST /demo/cv` génère un CV côté serveur et le confie au SDK : le
-   navigateur ne reçoit qu'un aperçu tronqué et filigrané.
-2. `POST /deliverables/:id/pay` passe le livrable à `payment_pending`.
-3. Le fournisseur confirme (webhook FedaPay, ou `POST /demo/simulate/:id/approved`
-   en mode mock) ; le SDK **revérifie le statut par appel API** avant de
-   débloquer.
-4. `GET /deliverables/:id/download` renvoie un lien signé (402 avant).
-5. `GET /deliverables/:id/content?token=…` sert le fichier complet.
+1. **Vos infos** — on importe un CV existant en PDF (`POST /demo/cv/import`,
+   champ multipart `file`, 5 Mo max) ou on remplit le formulaire. L'import
+   extrait le texte **sur le serveur** (`unpdf`, sans réseau ni service tiers),
+   repère les rubriques FR/EN (profil, expériences, formation, compétences,
+   langues, centres d'intérêt) et pré-remplit le formulaire, que la personne
+   relit. Rien n'est stocké à cette étape. Un PDF d'exemple est fourni :
+   `docs/samples/cv-exemple.pdf` (`pnpm sample:cv` pour le régénérer).
+2. **Aperçu** — `POST /demo/cv` stocke les données structurées (`cv/v1`) et
+   confie le livrable au SDK. La `CvPreviewStrategy` produit côté serveur le
+   **vrai gabarit A4** dont les parties payantes (réalisations, formation,
+   coordonnées complètes, compétences au-delà de 3…) sont remplacées par des
+   barres grises : le texte masqué n'est jamais envoyé au navigateur.
+3. **Paiement** — `POST /deliverables/:id/pay` passe à `payment_pending`. FedaPay
+   sandbox étant indisponible, un **simulateur Mobile Money maison** (téléphone
+   MTN / Moov avec code secret) répond à la demande : *Valider* → `approved`,
+   *Annuler* → `declined`, ou demande expirée. La réponse passe par
+   `POST /demo/simulate/:id/:statut` et le SDK **revérifie le statut par appel
+   API** avant de débloquer, comme avec FedaPay.
+4. **Téléchargement** — `GET /deliverables/:id/download` renvoie un lien signé
+   (402 avant), puis `GET /deliverables/:id/content?token=…` sert le CV :
+   - `format=html` (défaut) : document A4 autonome, CSP stricte, imprimable en
+     PDF (« Télécharger en PDF » ouvre l'impression du navigateur) ;
+   - `format=md` : version texte Markdown ;
+   - `toolbar=1` : ajoute la barre « Imprimer / PDF » pour l'ouverture en onglet.
+
+Quatre couleurs de modèle (`theme` : `emeraude`, `indigo`, `ardoise`,
+`terracotta`). Le contenu est stocké structuré et le HTML recalculé à la
+lecture : une amélioration du gabarit profite aussi aux CV déjà payés.
 
 ## Métriques de validation
 
@@ -73,8 +93,9 @@ il est relançable sans frais.
 
 ## Interface web
 
-`http://localhost:5173` — formulaire, aperçu filigrané, paywall, et un bloc
-« mode démo » pour simuler Approuver / Refuser / Expirer. Le front appelle
+`http://localhost:5173` — import PDF ou formulaire, aperçu A4 caviardé,
+paiement via le simulateur Mobile Money, CV final (PDF / .html / .md) et un
+panneau repliable « Tableau de bord intégrateur » pour les métriques. Le front appelle
 l'API en même origine via le proxy Vite (`/deliverables`, `/demo`).
 
 ## Preuve de bout en bout avec FedaPay sandbox

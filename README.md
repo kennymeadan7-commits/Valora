@@ -19,13 +19,13 @@ d'abord, on paie le livrable, pas le mois**.
 | 1 | Cœur TypeScript testé sans réseau | ✅ |
 | 2 | Storage PostgreSQL + API NestJS | ✅ Prisma + module NestJS + app de démo (`STORAGE=prisma`) |
 | 3 | FedaPay sandbox + webhooks | provider + sandbox validés, endpoint à rebrancher sur un tunnel |
-| 4 | Paywall React + démo CV | ✅ paywall + démo web |
+| 4 | Paywall React + démo CV | ✅ démo « Valora CV » : import PDF, aperçu A4 caviardé, Mobile Money simulé, PDF final |
 
 ## Démarrage
 
 ```sh
 pnpm install
-pnpm test        # 15 tests, aucun accès réseau
+pnpm test        # 147 tests, aucun accès réseau
 pnpm typecheck
 ```
 

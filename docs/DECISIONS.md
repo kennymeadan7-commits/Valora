@@ -15,6 +15,11 @@
 | 2026-11-14 | `transferred` et `refunded` sont mappés sur `approved` (le livrable reste `unlocked`) | Un `transferred` est un succès déjà acquis ; `refunded` reste à trancher |
 
 | 2026-11-14 | On avance **sans la sandbox FedaPay** (indisponible côté FedaPay) | Le compte sandbox `acc_2990265463` décline tous les `momo_test` et son endpoint `/v1/mobile_accounts` répond 500. Le code reste prêt : le déblocage est prouvé avec l'adaptateur de production et un transport bouchonné. |
+| 2026-11-14 | Démo : paiement géré par un **simulateur Mobile Money maison** (fournisseur `mock` + écran téléphone) tant que FedaPay sandbox est indisponible | Démo complète sans opérateur ; le déblocage reste revérifié par `getPaymentStatus`, aucun raccourci côté client |
+| 2026-11-14 | Contenu du CV stocké **structuré** (`{ format: "cv/v1", data }`), HTML/Markdown recalculés à la lecture | L'aperçu caviardé et le document final dérivent des mêmes données ; le gabarit peut évoluer sans migrer les livrables |
+| 2026-11-14 | Aperçu CV = gabarit HTML réel caviardé **côté serveur** (barres grises à la place du texte payant) | Invariant n° 6 : rien de masqué côté client ; l'aperçu donne envie sans être utilisable |
+| 2026-11-14 | PDF final produit par l'impression du navigateur (HTML A4 + `@page`) plutôt qu'un moteur PDF serveur | Zéro dépendance lourde (Chromium) ; rendu fidèle. À revoir si un vrai fichier .pdf serveur devient nécessaire |
+| 2026-11-14 | Import de CV PDF : extraction `unpdf` + analyse **heuristique** locale, résultat relu par l'utilisateur | Hors ligne, déterministe, testable ; un LLM pourra améliorer l'extraction plus tard |
 
 ## Points ouverts (repris du PRD)
 
@@ -24,4 +29,5 @@
 - [ ] Licence : MIT ou Apache-2.0.
 - [ ] Nom définitif : `PreviewPay` est un nom de travail (`Valora` côté dépôt).
 - [ ] Confirmer le traitement de `expired` (voir décision ci-dessus).
+- [ ] Extraction PDF : CV scannés (OCR) et mises en page exotiques non couverts.
 - [ ] Rouvrir le jalon 3 quand un compte sandbox FedaPay fonctionnel est disponible.
