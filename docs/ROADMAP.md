@@ -40,6 +40,15 @@ contenu complet n'apparaît dans aucune réponse avant `unlocked`.
 - [ ] `apps/web` : parcours CV → aperçu filigrané → 200 F → téléchargement (en cours)
 - [ ] Métriques : taux de validation, taux de refus, marge, délai, échecs
 
+## Dette technique connue
+
+- `apps/api` tourne sur `storage-memory`. Pour basculer sur Prisma, il faut un
+  client Prisma généré accessible à l'app (sortie de `generator` partagée entre
+  `packages/storage-prisma` et `apps/api`) — sinon les deux copies pnpm du client
+  divergent. Le contrat PostgreSQL, lui, est déjà validé (13 tests sur base réelle).
+- Les paquets exposent leur source TypeScript ; `scripts/build-api.mjs` bundle
+  l'API avec esbuild. Une publication npm demandera une compilation `tsc` par paquet.
+
 ## Décisions à prendre avec Sami
 
 - Licence (MIT / Apache-2.0)
