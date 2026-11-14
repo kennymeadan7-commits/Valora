@@ -1,26 +1,68 @@
-# Valora
+# Valora / PreviewPay
 
-> Projet en cours d'initialisation — PRD à venir.
+> **Aperçu puis paiement.** Un livrable généré par une IA se prévisualise, se
+> paie en Mobile Money (100–500 F XOF), puis se débloque. SDK open source pour
+> les développeurs qui construisent des outils IA sur les marchés à faible
+> pouvoir d'achat.
 
-## Statut
+## Le problème
 
-- [x] Dépôt initialisé
-- [ ] PRD validé
-- [ ] Stack technique choisie
-- [ ] MVP
+Les outils IA facturent un abonnement mensuel fixe, souvent en dollars : on paie
+avant de savoir si l'outil sert, sans carte internationale, et le forfait pèse
+lourd pour un usage occasionnel. PreviewPay inverse la logique : **on voit
+d'abord, on paie le livrable, pas le mois**.
+
+## État
+
+| Jalon | Contenu | État |
+| --- | --- | --- |
+| 1 | Cœur TypeScript testé sans réseau | ✅ |
+| 2 | Storage PostgreSQL + API NestJS | à venir |
+| 3 | FedaPay sandbox + webhooks | à venir |
+| 4 | Paywall React + démo CV | à venir |
+
+## Démarrage
+
+```sh
+pnpm install
+pnpm test        # 15 tests, aucun accès réseau
+pnpm typecheck
+```
 
 ## Structure
 
 ```
-.
-├── docs/        # Documentation, PRD, specs
-└── README.md
+packages/
+  core/              # machine à états, interfaces, moteur — zéro framework
+  storage-memory/    # Storage en mémoire
+  provider-mock/     # PaymentProvider simulé (webhooks signés)
+  storage-prisma/    # Storage PostgreSQL          (à venir)
+  provider-fedapay/  # PaymentProvider FedaPay     (à venir)
+  testing/           # suite de contrat d'adaptateur (à venir)
+  nestjs/            # PreviewPayModule            (à venir)
+  react/             # usePreviewPay + paywall     (à venir)
+apps/
+  api/               # démo NestJS                  (à venir)
+  web/               # démo React + Vite            (à venir)
 ```
 
-## Démarrage
+## La machine à états
 
-À compléter une fois la stack définie.
+```
+draft ──> previewed ──pay──> payment_pending ──approved──> unlocked
+              │                     │
+           reject          declined / canceled / expired
+              │                     │
+              v                     └──> previewed (relançable)
+          rejected
+```
+
+## Documentation
+
+- `docs/PRD — PreviewPay SDK …md` — spécification complète
+- `docs/DECISIONS.md` — journal des décisions et points ouverts
+- `AGENTS.md` — conventions de code et répartition entre agents
 
 ## Licence
 
-À définir.
+À définir (MIT ou Apache-2.0 — voir questions ouvertes du PRD).
