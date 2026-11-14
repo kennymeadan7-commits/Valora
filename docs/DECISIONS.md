@@ -28,6 +28,7 @@
 | 2026-11-14 | Licence **MIT** pour tout le dépôt et chaque paquet | Licence permissive et courte : aucune friction pour les intégrateurs, y compris dans des produits commerciaux |
 | 2026-11-14 | **Réconciliation à la lecture** : `get()` relit le statut d'un paiement en attente depuis ≥ 10 s, au plus toutes les 10 s par livrable ; activée par défaut | Sans elle, un webhook perdu laissait un client payé sans livrable, et `expired` (sans webhook) n'était jamais détecté. Le polling du paywall suffit à la déclencher ; aucun cron requis |
 | 2026-11-14 | Paywall React : 4 opérateurs FedaPay par défaut (MTN/Moov Bénin, Moov Togo, MTN CI), liste configurable (`operators`) | La liste codée en dur excluait des pays déjà gérés par l'adaptateur |
+| 2026-11-14 | Paquet **`@previewpay/express`** : routeur Express 4/5 avec les mêmes endpoints, codes d'erreur et gardes que NestJS ; `serveContent` optionnel vérifie le jeton avant de servir | Ouvrir le SDK aux projets Node sans NestJS ; même contrat HTTP pour que `@previewpay/react` marche avec les deux |
 
 ## Points ouverts (repris du PRD)
 

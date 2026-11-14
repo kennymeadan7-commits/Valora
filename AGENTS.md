@@ -20,6 +20,7 @@ packages/
   provider-fedapay/  # PaymentProvider FedaPay sandbox
   testing/           # suite de contrat commune aux adaptateurs
   nestjs/            # PreviewPayModule + 6 endpoints
+  express/           # routeur Express, mêmes endpoints que nestjs
   react/             # usePreviewPay + <PreviewPaywall />
 apps/
   api/               # démo NestJS (rawBody: true)
@@ -76,7 +77,7 @@ Un commit = un changement cohérent. Ne pousse rien sans validation humaine.
 ## Agents disponibles
 
 - `core-engineer` — `packages/core|storage-*|provider-*|testing`
-- `integration-engineer` — `packages/nestjs|react`, `apps/api|web`
+- `integration-engineer` — `packages/nestjs|express|react`, `apps/api|web`
 
 Chaque agent reste dans son périmètre ; les décisions transverses remontent à
 l'agent principal.

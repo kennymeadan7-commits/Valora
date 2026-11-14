@@ -13,6 +13,7 @@ Serveur :
 
 ```sh
 npm install @previewpay/core @previewpay/nestjs @previewpay/storage-prisma @prisma/client
+# ou, sans NestJS : npm install @previewpay/core @previewpay/express express
 npm install @previewpay/provider-mock        # développement / démo
 npm install @previewpay/provider-fedapay     # paiement réel (sandbox puis live)
 ```
@@ -107,6 +108,25 @@ Le module expose :
 | `POST /deliverables/:id/reject` | régénère l'aperçu dans la limite, sinon clôt sans frais |
 | `GET /deliverables/:id/download` | lien signé, `402` avant paiement |
 | `POST /webhooks/fedapay` | événements du fournisseur, signature vérifiée |
+
+### Vous utilisez Express plutôt que NestJS ?
+
+`@previewpay/express` expose les mêmes endpoints :
+
+```ts
+import express from "express";
+import { PreviewPay } from "@previewpay/core";
+import { createPreviewPayRouter } from "@previewpay/express";
+
+const previewPay = new PreviewPay({ storage, provider, pricing, preview, download, limits });
+const app = express();
+app.use(createPreviewPayRouter({
+  previewPay,
+  internalApiKey: process.env.PREVIEWPAY_INTERNAL_KEY,
+  serveContent: (d, _req, res) => res.send(renderPdfOrHtml(d.content)), // remplace l'étape 6
+}));
+app.use(express.json()); // APRÈS le routeur : le webhook lit le corps brut
+```
 
 ## 5. Créer un livrable depuis votre agent
 

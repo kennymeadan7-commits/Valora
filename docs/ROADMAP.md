@@ -59,6 +59,7 @@ contenu complet n'apparaît dans aucune réponse avant `unlocked`.
 - [x] Licence MIT (décidée le 14/11)
 - [x] Réconciliation automatique des paiements en attente (webhook perdu, `expired`)
 - [x] Opérateurs Mobile Money configurables dans le paywall (4 pays FedaPay)
+- [x] `@previewpay/express` : routeur Express (mêmes endpoints que NestJS)
 - [ ] Nom définitif, puis `pnpm -r publish` (validation humaine)
 
 ## Dette technique connue

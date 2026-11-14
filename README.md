@@ -27,6 +27,7 @@ d'abord, on paie le livrable, pas le mois**.
 | --- | --- |
 | [`@previewpay/core`](packages/core) | machine à états, moteur, interfaces — zéro framework |
 | [`@previewpay/nestjs`](packages/nestjs) | `PreviewPayModule` + 6 endpoints |
+| [`@previewpay/express`](packages/express) | les mêmes 6 endpoints en routeur Express (4 et 5) |
 | [`@previewpay/react`](packages/react) | `usePreviewPay` + `<PreviewPaywall />` |
 | [`@previewpay/storage-prisma`](packages/storage-prisma) | stockage PostgreSQL |
 | [`@previewpay/storage-memory`](packages/storage-memory) | stockage en mémoire (tests, démo) |
@@ -61,6 +62,7 @@ packages/
   provider-fedapay/  # PaymentProvider FedaPay sandbox
   testing/           # suite de contrat d'adaptateur
   nestjs/            # PreviewPayModule + 6 endpoints
+  express/           # routeur Express (mêmes endpoints, sans Nest)
   react/             # usePreviewPay + paywall
 apps/
   api/               # démo NestJS
