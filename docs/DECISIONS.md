@@ -20,6 +20,11 @@
 | 2026-11-14 | Aperçu CV = gabarit HTML réel caviardé **côté serveur** (barres grises à la place du texte payant) | Invariant n° 6 : rien de masqué côté client ; l'aperçu donne envie sans être utilisable |
 | 2026-11-14 | PDF final produit par l'impression du navigateur (HTML A4 + `@page`) plutôt qu'un moteur PDF serveur | Zéro dépendance lourde (Chromium) ; rendu fidèle. À revoir si un vrai fichier .pdf serveur devient nécessaire |
 | 2026-11-14 | Import de CV PDF : extraction `unpdf` + analyse **heuristique** locale, résultat relu par l'utilisateur | Hors ligne, déterministe, testable ; un LLM pourra améliorer l'extraction plus tard |
+| 2026-11-14 | Paquets publiés en **ESM + CommonJS** (tsup), `publishConfig` vers `dist/` ; le workspace garde `main: ./src/index.ts` | Couvre les hôtes Nest en CJS comme en ESM sans étape de build en développement |
+| 2026-11-14 | `@nestjs/*`, `reflect-metadata`, `rxjs`, `react`, `@prisma/client` en **peerDependencies** | L'hôte possède ces bibliothèques ; deux copies de Nest ou de React cassent l'injection / les hooks |
+| 2026-11-14 | Génération du client Prisma par un `postinstall` **racine** (plus dans le paquet) | Un `postinstall` publié s'exécuterait chez l'intégrateur sans son schéma |
+| 2026-11-14 | Limite anti-abus = livrables par `ownerId` sur **24 h glissantes**, vérifiée avant l'aperçu ; `Storage.countDeliverablesByOwner` | Pas de coût IA pour un aperçu refusé ; comptage non transactionnel (dépassement d'une unité possible, accepté) |
+| 2026-11-14 | La route `/deliverables/:id/content` reste à l'hôte | Le format livré (PDF, HTML, ZIP) dépend du produit ; le SDK fournit `verifyDownloadToken` |
 
 ## Points ouverts (repris du PRD)
 

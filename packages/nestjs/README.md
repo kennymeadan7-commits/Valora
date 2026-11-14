@@ -13,6 +13,15 @@ GET    /deliverables/:id/download   402 tant que l'état n'est pas `unlocked`
 POST   /webhooks/fedapay            signature vérifiée sur le corps brut
 ```
 
+## Installation
+
+```sh
+npm install @previewpay/nestjs @previewpay/core @nestjs/common @nestjs/core reflect-metadata rxjs
+```
+
+`@nestjs/*`, `reflect-metadata` et `rxjs` sont des *peerDependencies* : ce sont
+ceux de votre application.
+
 ## Branchement
 
 ```ts
@@ -71,6 +80,7 @@ répond 500 avec un message explicite.
 | `maxRegenerations` | régénérations après refus | 2 (cœur) |
 | `internalApiKey` | active la garde `x-internal-key` | désactivée |
 | `rateLimit` | `{ max, windowMs }` ou `false` | `{ max: 5, windowMs: 60000 }` |
+| `limits` | `{ previewsPerOwnerPerDay }` — aperçus gratuits par `ownerId` sur 24 h | désactivée |
 | `now`, `generateId` | horloge / générateur d'id (tests) | cœur |
 
 Les erreurs de configuration (option manquante, secret absent, `rateLimit.max`
@@ -85,6 +95,7 @@ invalide) sont levées **au démarrage**, pas à la première requête.
 | `ConflictError` | 409 | `CONFLICT` |
 | `PaymentRequiredError` | 402 | `PAYMENT_REQUIRED` |
 | `InvalidSignatureError` | 400 | `INVALID_SIGNATURE` |
+| `PreviewLimitError` | 429 (+ `Retry-After`) | `PREVIEW_LIMIT_REACHED` |
 | autre erreur du cœur (`MissingPriceError`, …) | 500 | code du cœur |
 | erreur inattendue | 500 | `INTERNAL_ERROR` |
 
@@ -114,6 +125,35 @@ l'application, y compris aux routes de l'hôte.
   en mémoire : sur plusieurs instances, la remplacer par un limiteur partagé.
 - **Secrets.** Aucune clé n'est attendue dans le code : `download.secret` et la
   clé FedaPay vivent en variables d'environnement.
+
+## Servir le contenu débloqué
+
+Le lien renvoyé par `/download` pointe vers `/deliverables/:id/content?token=…`.
+Cette route est volontairement laissée à l'hôte : lui seul sait sous quelle
+forme livrer son contenu (PDF, HTML, ZIP…). Elle doit **toujours** passer par
+`verifyDownloadToken` :
+
+```ts
+@Controller("deliverables")
+export class ContentController {
+  constructor(@Inject(PREVIEWPAY_ENGINE) private readonly previewPay: PreviewPay) {}
+
+  @Get(":id/content")
+  @Header("cache-control", "no-store")
+  async content(@Param("id") id: string, @Query("token") token: string) {
+    const d = await this.previewPay.verifyDownloadToken(token); // 400 / 402 sinon
+    if (d.id !== id) throw new ForbiddenException();
+    return d.content; // ou un fichier rendu à partir de d.content
+  }
+}
+```
+
+## Limite d'aperçus par utilisateur
+
+Passez `ownerId` (identifiant opaque de votre utilisateur) à
+`POST /deliverables` et configurez `limits: { previewsPerOwnerPerDay: 5 }` :
+au-delà, la création répond `429` avec `Retry-After`, avant toute génération
+d'aperçu. Sans `ownerId`, aucune limite ne s'applique.
 
 ## Détails d'implémentation utiles à l'hôte
 

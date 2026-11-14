@@ -21,12 +21,33 @@ d'abord, on paie le livrable, pas le mois**.
 | 3 | FedaPay sandbox + webhooks | provider + sandbox validés, endpoint à rebrancher sur un tunnel |
 | 4 | Paywall React + démo CV | ✅ démo « Valora CV » : import PDF, aperçu A4 caviardé, Mobile Money simulé, PDF final |
 
-## Démarrage
+## Utiliser le SDK
+
+| Paquet | Rôle |
+| --- | --- |
+| [`@previewpay/core`](packages/core) | machine à états, moteur, interfaces — zéro framework |
+| [`@previewpay/nestjs`](packages/nestjs) | `PreviewPayModule` + 6 endpoints |
+| [`@previewpay/react`](packages/react) | `usePreviewPay` + `<PreviewPaywall />` |
+| [`@previewpay/storage-prisma`](packages/storage-prisma) | stockage PostgreSQL |
+| [`@previewpay/storage-memory`](packages/storage-memory) | stockage en mémoire (tests, démo) |
+| [`@previewpay/provider-fedapay`](packages/provider-fedapay) | Mobile Money via FedaPay |
+| [`@previewpay/provider-mock`](packages/provider-mock) | paiement simulé |
+| [`@previewpay/testing`](packages/testing) | suites de contrat pour adaptateurs |
+
+Guide pas à pas : **[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md)**.
+
+Version `0.1.0`, ESM + CommonJS + types, Node ≥ 20. Rien n'est encore publié
+sur npm : la licence doit d'abord être choisie (voir « Licence »).
+
+## Développer
 
 ```sh
 pnpm install
-pnpm test        # 147 tests, aucun accès réseau
+pnpm test            # Vitest, aucun accès réseau
 pnpm typecheck
+pnpm build           # dist/ de chaque paquet (ESM, CJS, .d.ts)
+pnpm pack:check      # tarballs + contrôle de ce qui serait publié
+pnpm consumer:check  # installe les tarballs dans un projet vierge et les exerce
 ```
 
 ## Structure
@@ -68,4 +89,6 @@ draft ──> previewed ──pay──> payment_pending ──approved──> u
 
 ## Licence
 
-À définir (MIT ou Apache-2.0 — voir questions ouvertes du PRD).
+À définir (MIT ou Apache-2.0 — voir questions ouvertes du PRD). C'est le seul
+point qui bloque la publication : `pnpm pack:check --strict` échoue tant qu'il
+manque un fichier `LICENSE` et le champ `license` des paquets.

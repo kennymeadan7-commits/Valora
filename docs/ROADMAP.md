@@ -44,10 +44,25 @@ contenu complet n'apparaît dans aucune réponse avant `unlocked`.
 - [x] `apps/web` : parcours CV → aperçu filigrané → 200 F → téléchargement (vérifié dans Chrome)
 - [x] Métriques : taux de validation, taux de refus, marge, délai, échecs
 
+## Livraison du SDK (v0.1.0)
+
+- [x] Build par paquet (tsup) : ESM + CommonJS + déclarations, `publishConfig`
+      vers `dist/` (le monorepo continue de consommer `src/`)
+- [x] Manifestes npm : version, description, `files`, `engines`, peers
+      (`@nestjs/*`, `react`, `@prisma/client`, `vitest`), aucun `postinstall` publié
+- [x] `pnpm pack:check` : contenu des tarballs et manifestes publiés
+- [x] `pnpm consumer:check` : installation dans un projet vierge (ESM, CJS,
+      NestJS réel, React SSR, Prisma, types `nodenext`/`bundler`, contrat Vitest)
+- [x] Job CI `package`
+- [x] README par paquet + `docs/GETTING-STARTED.md`
+- [x] Limite d'aperçus gratuits par utilisateur et par 24 h (`ownerId`, 429)
+- [ ] Licence (MIT / Apache-2.0) — **bloque la publication**
+- [ ] Nom définitif, puis `pnpm -r publish` (validation humaine)
+
 ## Dette technique connue
 
-- Les paquets exposent leur source TypeScript ; `scripts/build-api.mjs` bundle
-  l'API avec esbuild. Une publication npm demandera une compilation `tsc` par paquet.
+- `scripts/build-api.mjs` bundle l'app de démo avec esbuild ; elle consomme
+  les sources des paquets, pas leur `dist/`.
 
 ## Décisions à prendre avec Sami
 
