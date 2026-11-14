@@ -14,6 +14,8 @@
 | 2026-11-14 | `merchant_reference` = id du livrable, `custom_metadata` réservé au non-sensible | Permet de recouper côté FedaPay sans table de correspondance |
 | 2026-11-14 | `transferred` et `refunded` sont mappés sur `approved` (le livrable reste `unlocked`) | Un `transferred` est un succès déjà acquis ; `refunded` reste à trancher |
 
+| 2026-11-14 | On avance **sans la sandbox FedaPay** (indisponible côté FedaPay) | Le compte sandbox `acc_2990265463` décline tous les `momo_test` et son endpoint `/v1/mobile_accounts` répond 500. Le code reste prêt : le déblocage est prouvé avec l'adaptateur de production et un transport bouchonné. |
+
 ## Points ouverts (repris du PRD)
 
 - [x] Champs JSON exacts d'un webhook FedaPay → relevés le 14/11, voir `docs/fedapay-sandbox.md`.
@@ -22,3 +24,4 @@
 - [ ] Licence : MIT ou Apache-2.0.
 - [ ] Nom définitif : `PreviewPay` est un nom de travail (`Valora` côté dépôt).
 - [ ] Confirmer le traitement de `expired` (voir décision ci-dessus).
+- [ ] Rouvrir le jalon 3 quand un compte sandbox FedaPay fonctionnel est disponible.

@@ -3,12 +3,13 @@ import { PreviewPayModule } from "@previewpay/nestjs";
 import { config } from "./instance.js";
 import { DemoController } from "./demo.controller.js";
 import { ContentController } from "./content.controller.js";
+import { MetricsController } from "./metrics.controller.js";
 
 export { config };
 
 /**
- * App de démo : le module du SDK + deux contrôleurs maison (génération du CV,
- * livraison du fichier final).
+ * App de démo : le module du SDK + trois contrôleurs maison (génération du
+ * CV, livraison du fichier final, métriques de validation).
  */
 @Module({
   imports: [
@@ -26,6 +27,6 @@ export { config };
       ...(config.internalApiKey ? { internalApiKey: config.internalApiKey } : {}),
     }),
   ],
-  controllers: [DemoController, ContentController],
+  controllers: [DemoController, ContentController, MetricsController],
 })
 export class AppModule {}

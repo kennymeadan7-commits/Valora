@@ -462,6 +462,96 @@ code {
   border-radius: 9px;
 }
 
+/* --- métriques ------------------------------------------------------------ */
+
+.metrics {
+  gap: 0.75rem;
+}
+
+.metrics-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.metrics-table thead th {
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+}
+
+.metrics-table tbody th,
+.metrics-table tbody td {
+  padding: 0.55rem 0.6rem;
+  text-align: left;
+  vertical-align: baseline;
+  border-bottom: 1px solid #eef1f5;
+}
+
+.metrics-table tbody th {
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.metrics-table tbody tr:last-child th,
+.metrics-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.metric-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 1.0625rem;
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+.metric-value:empty::after {
+  content: "—";
+}
+
+.metric-hint {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 640px) {
+  .metrics-table thead {
+    display: none;
+  }
+
+  .metrics-table tbody tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0 0.75rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid #eef1f5;
+  }
+
+  .metrics-table tbody th,
+  .metrics-table tbody td {
+    padding: 0.15rem 0;
+    border-bottom: none;
+  }
+
+  .metrics-table .metric-hint {
+    grid-column: 1 / -1;
+  }
+}
+
 .footer {
   padding-top: 0.5rem;
   color: var(--muted);

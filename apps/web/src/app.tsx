@@ -7,9 +7,11 @@ import {
   fetchDeliverable,
   fetchDeliverableText,
   fetchHealth,
+  fetchMetrics,
   simulatePayment,
   type DeliverableView,
   type DemoHealth,
+  type DemoMetrics,
   type SimulatedStatus,
 } from "./api.js";
 
@@ -70,6 +72,56 @@ const SIMULATIONS: ReadonlyArray<{
 
 function stateLabel(state: string): string {
   return STATE_LABELS[state] ?? state;
+}
+
+/* --- formatage des métriques ---------------------------------------------- */
+
+const PERCENT_FORMAT = new Intl.NumberFormat("fr-FR", {
+  style: "percent",
+  maximumFractionDigits: 1,
+});
+
+const SECONDS_FORMAT = new Intl.NumberFormat("fr-FR", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
+/** `0.5` → « 50 % » ; `null` → « — » (aucune donnée, pas zéro). */
+function formatPercent(value: number | null | undefined): string {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "—";
+  return PERCENT_FORMAT.format(value);
+}
+
+/** Millisecondes → « 1,4 s » ; `null` → « — ». */
+function formatDelay(ms: number | null | undefined): string {
+  if (typeof ms !== "number" || !Number.isFinite(ms)) return "—";
+  return `${SECONDS_FORMAT.format(ms / 1000)} s`;
+}
+
+/** Entier XOF → « 200 F CFA » ; `null` → « — ». */
+function formatAmount(value: number | null | undefined): string {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "—";
+  return formatPrice(value);
+}
+
+/**
+ * Vrai pour un `POST /pay` ou `POST /reject` émis par le paywall du SDK.
+ * L'action de paiement se décide *dans* le composant : l'app n'a pas d'autre
+ * signal pour rafraîchir ses métriques sans attendre la scrutation d'état.
+ */
+function isPaywallAction(
+  input: string | URL | Request,
+  init: RequestInit | undefined,
+): boolean {
+  const method = init?.method?.toUpperCase();
+  if (method !== "POST") return false;
+  const url =
+    typeof input === "string"
+      ? input
+      : input instanceof URL
+        ? input.href
+        : input.url;
+  return /\/pay(\?|$)|\/reject(\?|$)/.test(url);
 }
 
 /** Découpe la saisie « a, b, c » en compétences propres et dédupliquées. */
@@ -147,6 +199,88 @@ function PreviewView({ preview }: { preview: unknown }) {
   );
 }
 
+/**
+ * Tableau des cinq métriques de validation du PRD.
+ *
+ * Ce composant ne calcule rien : les taux et les moyennes arrivent déjà
+ * calculés par `computeMetrics` (côté serveur). Il se contente de formater,
+ * et affiche « — » quand une valeur n'existe pas encore (marge sans coût IA).
+ */
+function MetricsTable({ metrics }: { metrics: DemoMetrics | null }) {
+  const paid = metrics?.paid ?? 0;
+  const previewed = metrics?.previewed ?? 0;
+  const rejected = metrics?.rejected ?? 0;
+  const attempts = metrics?.paymentAttempts ?? 0;
+  const failures = metrics?.paymentFailures ?? 0;
+  const aiCost = metrics?.aiCostPerDeliverable ?? null;
+
+  return (
+    <table className="metrics-table" data-testid="metrics">
+      <thead>
+        <tr>
+          <th scope="col">Métrique</th>
+          <th scope="col">Valeur</th>
+          <th scope="col">Détail</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Taux de validation</th>
+          <td className="metric-value" data-testid="metric-conversion">
+            {formatPercent(metrics?.conversionRate)}
+          </td>
+          <td className="metric-hint">
+            {paid} payé{paid > 1 ? "s" : ""} ÷ {previewed} prévisualisé
+            {previewed > 1 ? "s" : ""}
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">Taux de refus</th>
+          <td className="metric-value" data-testid="metric-rejection">
+            {formatPercent(metrics?.rejectionRate)}
+          </td>
+          <td className="metric-hint">
+            {rejected} refusé{rejected > 1 ? "s" : ""} ÷ {previewed}{" "}
+            prévisualisé{previewed > 1 ? "s" : ""}
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">Marge par livrable</th>
+          <td className="metric-value" data-testid="metric-margin">
+            {formatAmount(metrics?.marginPerDeliverable)}
+          </td>
+          <td className="metric-hint">
+            {aiCost === null
+              ? "coût IA inconnu (DEMO_AI_COST_PER_DELIVERABLE absent)"
+              : metrics === null || metrics.averagePrice === null
+                ? `en attente d'un livrable payé (coût IA ${formatAmount(aiCost)})`
+                : `prix moyen ${formatAmount(metrics.averagePrice)} − coût IA ${formatAmount(aiCost)}`}
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">Délai aperçu → paiement</th>
+          <td className="metric-value" data-testid="metric-delay">
+            {formatDelay(metrics?.averageTimeToPaymentMs)}
+          </td>
+          <td className="metric-hint">
+            temps moyen entre l'aperçu et le lancement du paiement
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">Taux d'échec de paiement</th>
+          <td className="metric-value" data-testid="metric-failure">
+            {formatPercent(metrics?.paymentFailureRate)}
+          </td>
+          <td className="metric-hint">
+            {failures} échec{failures > 1 ? "s" : ""} ÷ {attempts} paiement
+            {attempts > 1 ? "s" : ""} lancé{attempts > 1 ? "s" : ""}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  );
+}
+
 export function App() {
   const [draft, setDraft] = useState<CvDraft>(INITIAL_DRAFT);
   const [deliverable, setDeliverable] = useState<DeliverableView | null>(null);
@@ -167,6 +301,12 @@ export function App() {
 
   const [health, setHealth] = useState<DemoHealth | null>(null);
 
+  const [metrics, setMetrics] = useState<DemoMetrics | null>(null);
+  const [metricsError, setMetricsError] = useState<string | null>(null);
+  const [metricsRefreshing, setMetricsRefreshing] = useState(false);
+  /** Jeton de requête : une réponse ancienne ne doit pas écraser la récente. */
+  const metricsTicket = useRef(0);
+
   const deliverableId = deliverable?.id ?? null;
   const deliverableState = deliverable?.state ?? null;
 
@@ -184,6 +324,52 @@ export function App() {
       alive = false;
     };
   }, []);
+
+  /**
+   * Relit `GET /demo/metrics`. Aucun compteur n'est tenu dans le navigateur :
+   * le cœur recalcule tout à partir des livrables et de leur journal.
+   */
+  const loadMetrics = useCallback(async (): Promise<void> => {
+    const ticket = ++metricsTicket.current;
+    setMetricsRefreshing(true);
+    try {
+      const result = await fetchMetrics();
+      if (metricsTicket.current !== ticket) return;
+      setMetrics(result);
+      setMetricsError(null);
+    } catch (cause) {
+      if (metricsTicket.current !== ticket) return;
+      setMetricsError(describeError(cause));
+    } finally {
+      if (metricsTicket.current === ticket) setMetricsRefreshing(false);
+    }
+  }, []);
+
+  // Rafraîchissement au montage, puis après chaque action : génération ou
+  // simulation (`revision`), et tout changement d'état observé côté serveur
+  // (paiement lancé, refus, déblocage par webhook).
+  useEffect(() => {
+    void loadMetrics();
+  }, [loadMetrics, revision, deliverable]);
+
+  /**
+   * `fetch` instrumenté du paywall : dès qu'un `POST /pay` ou `/reject` est
+   * revenu, le panneau relit les métriques. Sans cela, il attendrait le
+   * prochain rafraîchissement d'état (3 s) pour voir le paiement.
+   */
+  const paywallFetch = useCallback<typeof fetch>(
+    (input, init) => {
+      const pending = globalThis.fetch(input, init);
+      if (isPaywallAction(input, init)) {
+        void pending.then(
+          () => loadMetrics(),
+          () => undefined,
+        );
+      }
+      return pending;
+    },
+    [loadMetrics],
+  );
 
   // Libère l'URL Blob du fichier précédent (ou au démontage).
   useEffect(() => {
@@ -487,6 +673,7 @@ export function App() {
                 style={{ maxWidth: "100%" }}
                 renderPreview={(preview) => <PreviewView preview={preview} />}
                 onUnlocked={() => setUnlocked(true)}
+                options={{ fetchImpl: paywallFetch }}
               />
 
               <div className="download">
@@ -618,6 +805,40 @@ export function App() {
         {demoError ? (
           <p className="alert" role="alert">
             {demoError}
+          </p>
+        ) : null}
+      </section>
+
+      <section className="card metrics" aria-labelledby="metrics-title">
+        <div className="metrics-head">
+          <h2 id="metrics-title">4. Métriques de validation</h2>
+          <button
+            className="button button-ghost"
+            type="button"
+            disabled={metricsRefreshing}
+            onClick={() => void loadMetrics()}
+          >
+            {metricsRefreshing ? "Actualisation…" : "Rafraîchir"}
+          </button>
+        </div>
+        <p className="muted">
+          Calculées côté serveur par <code>computeMetrics</code> à partir des
+          livrables et de leur journal, puis exposées par{" "}
+          <code>GET /demo/metrics</code>. Le navigateur ne fait aucun calcul :
+          il affiche des agrégats, jamais un contenu.
+        </p>
+
+        <MetricsTable metrics={metrics} />
+
+        <p className="muted small">
+          {metrics === null
+            ? "Aucune donnée pour l'instant."
+            : `${metrics.previewed} livrable${metrics.previewed > 1 ? "s" : ""} prévisualisé${metrics.previewed > 1 ? "s" : ""} · ${metrics.paymentAttempts} paiement${metrics.paymentAttempts > 1 ? "s" : ""} lancé${metrics.paymentAttempts > 1 ? "s" : ""} · calculé à ${new Date(metrics.generatedAt).toLocaleTimeString("fr-FR")}`}
+        </p>
+
+        {metricsError ? (
+          <p className="alert" role="alert">
+            {metricsError}
           </p>
         ) : null}
       </section>

@@ -58,6 +58,41 @@ export interface DemoHealth {
   provider: string;
 }
 
+/**
+ * Réponse de `GET /demo/metrics` — métriques de validation du PRD.
+ *
+ * Elles sont calculées par le cœur (`computeMetrics`) côté serveur : le
+ * navigateur ne fait que les afficher. Aucune donnée de contenu n'y figure.
+ */
+export interface DemoMetrics {
+  /** Livrables prévisualisés au moins une fois. */
+  previewed: number;
+  /** Livrables débloqués (payés). */
+  paid: number;
+  /** Livrables refusés (clos sans frais). */
+  rejected: number;
+  /** `paid / previewed`. */
+  conversionRate: number;
+  /** `rejected / previewed`. */
+  rejectionRate: number;
+  /** Paiements lancés. */
+  paymentAttempts: number;
+  /** Paiements revenus en arrière (declined / canceled / expired). */
+  paymentFailures: number;
+  /** `paymentFailures / paymentAttempts`. */
+  paymentFailureRate: number;
+  /** Aperçu → premier paiement, en millisecondes. */
+  averageTimeToPaymentMs: number | null;
+  /** Prix moyen des livrables payés, en XOF. */
+  averagePrice: number | null;
+  /** `averagePrice − aiCostPerDeliverable`, en XOF. */
+  marginPerDeliverable: number | null;
+  /** Coût IA retenu par le serveur ; `null` s'il n'est pas configuré. */
+  aiCostPerDeliverable: number | null;
+  /** Horodatage ISO du calcul. */
+  generatedAt: string;
+}
+
 /** Erreur HTTP normalisée : `message` est toujours affichable tel quel. */
 export class ApiError extends Error {
   readonly status: number;
@@ -184,10 +219,25 @@ export function simulatePayment(
   );
 }
 
-/** `GET /demo/health` — nom du fournisseur actif (`mock` ou `fedapay`). */
+/** `GET /demo/metrics` — nom du fournisseur actif (`mock` ou `fedapay`). */
 export function fetchHealth(): Promise<DemoHealth> {
   return requestJson<DemoHealth>("/demo/health", {
     headers: { accept: "application/json" },
+  });
+}
+
+/**
+ * `GET /demo/metrics` — tableau de bord de la démo.
+ *
+ * La route est protégée comme `/demo/simulate` : on envoie la même clé
+ * interne, lue dans `VITE_DEMO_INTERNAL_KEY`.
+ */
+export function fetchMetrics(): Promise<DemoMetrics> {
+  return requestJson<DemoMetrics>("/demo/metrics", {
+    headers: {
+      accept: "application/json",
+      "x-internal-key": DEMO_INTERNAL_KEY,
+    },
   });
 }
 

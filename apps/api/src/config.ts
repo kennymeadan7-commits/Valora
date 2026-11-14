@@ -23,6 +23,12 @@ export interface AppConfig {
   internalApiKey: string | undefined;
   maxRegenerations: number;
   providerName: "mock" | "fedapay";
+  /**
+   * Coût IA moyen par livrable, en XOF, lu dans
+   * `DEMO_AI_COST_PER_DELIVERABLE`. `null` quand la variable est absente ou
+   * illisible : la marge n'est alors pas calculable (le cœur renvoie `null`).
+   */
+  aiCostPerDeliverable: number | null;
 }
 
 /** Aperçu utile mais inutilisable : début du texte + filigrane explicite. */
@@ -86,6 +92,19 @@ function buildStorage(): { storage: Storage; kind: StorageKind } {
 }
 
 /**
+ * Coût IA par livrable pour le calcul de marge. Variable absente, vide ou
+ * illisible → `null` : la démo affiche « — » plutôt qu'une marge inventée.
+ * Aucune valeur par défaut : le coût réel dépend de l'agent de l'intégrateur.
+ */
+function parseAiCost(raw: string | undefined): number | null {
+  const value = raw?.trim();
+  if (value === undefined || value === "") return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) return null;
+  return parsed;
+}
+
+/**
  * Configuration de l'app de démo. Tout vient de l'environnement : aucun secret
  * en dur, et le mode `mock` est le défaut pour que la démo tourne hors ligne.
  */
@@ -110,5 +129,8 @@ export function loadConfig(): AppConfig {
     internalApiKey: process.env["PREVIEWPAY_INTERNAL_KEY"],
     maxRegenerations: Number(process.env["PREVIEWPAY_MAX_REGENERATIONS"] ?? 2),
     providerName: name,
+    aiCostPerDeliverable: parseAiCost(
+      process.env["DEMO_AI_COST_PER_DELIVERABLE"],
+    ),
   };
 }

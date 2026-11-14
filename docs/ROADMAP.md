@@ -32,14 +32,17 @@ contenu complet n'apparaît dans aucune réponse avant `unlocked`.
 - [x] Schéma réel du webhook relevé et documenté
 - [x] Rebrancher l'endpoint sur le tunnel HTTPS local — `cloudflared` + endpoint 5218 repointé
 - [x] Webhooks réels reçus par le tunnel, signature vérifiée, idempotence en base
-- [ ] **Bloqué** : la sandbox FedaPay décline tous les paiements `momo_test`
-      (compte `acc_2990265463`, voir `docs/fedapay-sandbox.md`) → déblocage réel non prouvable
+- [ ] Déblocage réel FedaPay — **sandbox FedaPay indisponible** (500 sur
+      `/v1/mobile_accounts`, `account.null`, tous les `momo_test` déclinés).
+      Décision du 14/11 : on continue **sans** la sandbox ; le chemin de
+      déblocage est couvert par un test avec l'adaptateur de production
+      (`packages/provider-fedapay/test/unlock-flow.test.ts`).
 
 ## Jalon 4 — interface et démo
 
 - [x] `@previewpay/react` : `usePreviewPay` (polling borné), `<PreviewPaywall />` (17 tests)
 - [x] `apps/web` : parcours CV → aperçu filigrané → 200 F → téléchargement (vérifié dans Chrome)
-- [ ] Métriques : taux de validation, taux de refus, marge, délai, échecs
+- [x] Métriques : taux de validation, taux de refus, marge, délai, échecs
 
 ## Dette technique connue
 

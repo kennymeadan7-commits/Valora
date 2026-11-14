@@ -38,6 +38,28 @@ pnpm --filter @previewpay/demo-web dev     # → http://localhost:5173
 4. `GET /deliverables/:id/download` renvoie un lien signé (402 avant).
 5. `GET /deliverables/:id/content?token=…` sert le fichier complet.
 
+## Métriques de validation
+
+`GET /demo/metrics` (en-tête `x-internal-key` si `PREVIEWPAY_INTERNAL_KEY` est
+défini) renvoie les cinq métriques du PRD calculées par `computeMetrics()` du
+cœur :
+
+```json
+{
+  "previewed": 3, "paid": 1, "rejected": 1,
+  "conversionRate": 0.3333, "rejectionRate": 0.3333,
+  "paymentAttempts": 2, "paymentFailures": 1, "paymentFailureRate": 0.5,
+  "averageTimeToPaymentMs": 18, "averagePrice": 200,
+  "marginPerDeliverable": 160, "aiCostPerDeliverable": 40,
+  "generatedAt": "2026-11-14T12:35:17.570Z"
+}
+```
+
+La marge dépend de `DEMO_AI_COST_PER_DELIVERABLE` (XOF entiers). Variable
+absente ou vide → `marginPerDeliverable: null` et « — » dans l'interface : le
+SDK n'invente pas de coût. Le panneau « Métriques » de la démo web affiche les
+mêmes valeurs et se rafraîchit après chaque action.
+
 ## Simulation Mobile Money (mode mock uniquement)
 
 ```sh
