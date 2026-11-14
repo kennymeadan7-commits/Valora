@@ -33,6 +33,20 @@ export class MemoryStorage implements Storage {
     return id ? this.getDeliverable(id) : null;
   }
 
+  /**
+   * Copie de tous les livrables, triée par `createdAt` puis `id`.
+   * Usage administration/métriques : la copie peut contenir `content`.
+   */
+  async listDeliverables(): Promise<Deliverable[]> {
+    return [...this.deliverables.values()]
+      .sort(
+        (a, b) =>
+          a.createdAt.getTime() - b.createdAt.getTime() ||
+          a.id.localeCompare(b.id),
+      )
+      .map((d) => structuredClone(d));
+  }
+
   async transition(
     id: string,
     from: State,

@@ -76,6 +76,57 @@ export function describeStorageContract({
       expect(await storage.getDeliverable("dlv_absent")).toBeNull();
     });
 
+    it("renvoie une liste vide quand aucun livrable n'existe", async () => {
+      expect(await storage.listDeliverables()).toEqual([]);
+    });
+
+    it("renvoie tous les livrables enregistrés", async () => {
+      const first = makeDeliverable({
+        id: "dlv_un",
+        paymentId: null,
+        content: { full: "contenu un" },
+      });
+      const second = makeDeliverable({
+        id: "dlv_deux",
+        paymentId: null,
+        state: "rejected",
+        createdAt: new Date(AT.getTime() + 1_000),
+        updatedAt: new Date(AT.getTime() + 1_000),
+        content: { full: "contenu deux" },
+      });
+
+      await storage.saveDeliverable(first);
+      await storage.saveDeliverable(second);
+
+      expect(await storage.listDeliverables()).toEqual([first, second]);
+    });
+
+    it("trie la liste par createdAt puis id", async () => {
+      const later = makeDeliverable({
+        id: "dlv_c",
+        paymentId: null,
+        createdAt: new Date(AT.getTime() + 2_000),
+        updatedAt: new Date(AT.getTime() + 2_000),
+      });
+      const tieB = makeDeliverable({ id: "dlv_b", paymentId: null });
+      const tieA = makeDeliverable({ id: "dlv_a", paymentId: null });
+      const earlier = makeDeliverable({
+        id: "dlv_0",
+        paymentId: null,
+        createdAt: new Date(AT.getTime() - 1_000),
+        updatedAt: new Date(AT.getTime() - 1_000),
+      });
+
+      // Insertion volontairement dans le désordre.
+      await storage.saveDeliverable(later);
+      await storage.saveDeliverable(tieB);
+      await storage.saveDeliverable(earlier);
+      await storage.saveDeliverable(tieA);
+
+      const ids = (await storage.listDeliverables()).map((d) => d.id);
+      expect(ids).toEqual(["dlv_0", "dlv_a", "dlv_b", "dlv_c"]);
+    });
+
     it("retrouve un livrable par son paiement, null sinon", async () => {
       const deliverable = makeDeliverable();
       await storage.saveDeliverable(deliverable);

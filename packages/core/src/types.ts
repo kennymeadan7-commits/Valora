@@ -77,6 +77,14 @@ export interface JournalEntry extends TransitionMeta {
 export interface Storage {
   saveDeliverable(d: Deliverable): Promise<void>;
   getDeliverable(id: string): Promise<Deliverable | null>;
+  /**
+   * Tous les livrables, triés par `createdAt` puis `id`.
+   *
+   * Réservé à l'administration et au calcul des métriques : les objets
+   * renvoyés contiennent `content`, qui ne doit jamais être sérialisé vers un
+   * client. Aucune route publique ne doit exposer cette liste.
+   */
+  listDeliverables(): Promise<Deliverable[]>;
   /** Retrouve un livrable par l'identifiant de paiement du fournisseur. */
   getDeliverableByPayment(paymentId: string): Promise<Deliverable | null>;
   /**

@@ -140,6 +140,17 @@ export class PrismaStorage implements Storage {
   }
 
   /**
+   * Tous les livrables, triés par `createdAt` puis `id`.
+   * Usage administration/métriques : le résultat contient `content`.
+   */
+  async listDeliverables(): Promise<Deliverable[]> {
+    const rows = await this.prisma.deliverable.findMany({
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    });
+    return rows.map(toDeliverable);
+  }
+
+  /**
    * Transition atomique : l'`UPDATE` conditionnel et l'écriture du journal
    * forment une seule transaction. Le perdant d'une course (`count === 0`)
    * ne laisse aucune trace.
