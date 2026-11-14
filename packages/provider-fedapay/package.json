@@ -2,6 +2,7 @@
   "name": "@previewpay/provider-fedapay",
   "version": "0.1.0",
   "description": "Fournisseur de paiement FedaPay (Mobile Money MTN / Moov) pour PreviewPay.",
+  "license": "MIT",
   "keywords": [
     "previewpay",
     "mobile-money",

@@ -36,8 +36,8 @@ d'abord, on paie le livrable, pas le mois**.
 
 Guide pas à pas : **[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md)**.
 
-Version `0.1.0`, ESM + CommonJS + types, Node ≥ 20. Rien n'est encore publié
-sur npm : la licence doit d'abord être choisie (voir « Licence »).
+Version `0.1.0`, ESM + CommonJS + types, Node ≥ 20, licence MIT. Rien n'est
+encore publié sur npm.
 
 ## Développer
 
@@ -89,6 +89,5 @@ draft ──> previewed ──pay──> payment_pending ──approved──> u
 
 ## Licence
 
-À définir (MIT ou Apache-2.0 — voir questions ouvertes du PRD). C'est le seul
-point qui bloque la publication : `pnpm pack:check --strict` échoue tant qu'il
-manque un fichier `LICENSE` et le champ `license` des paquets.
+[MIT](LICENSE). Chaque paquet publié embarque sa copie du fichier `LICENSE`
+(`pnpm pack:check --strict` le vérifie).

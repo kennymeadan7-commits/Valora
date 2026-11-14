@@ -2,6 +2,7 @@
   "name": "@previewpay/storage-memory",
   "version": "0.1.0",
   "description": "Stockage en mémoire pour PreviewPay (tests, démos, référence de comportement).",
+  "license": "MIT",
   "keywords": [
     "previewpay",
     "mobile-money",

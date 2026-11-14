@@ -2,6 +2,7 @@
   "name": "@previewpay/react",
   "version": "0.1.0",
   "description": "Paquet React PreviewPay : hook usePreviewPay et composant <PreviewPaywall />.",
+  "license": "MIT",
   "keywords": [
     "previewpay",
     "mobile-money",

@@ -56,7 +56,7 @@ contenu complet n'apparaît dans aucune réponse avant `unlocked`.
 - [x] Job CI `package`
 - [x] README par paquet + `docs/GETTING-STARTED.md`
 - [x] Limite d'aperçus gratuits par utilisateur et par 24 h (`ownerId`, 429)
-- [ ] Licence (MIT / Apache-2.0) — **bloque la publication**
+- [x] Licence MIT (décidée le 14/11)
 - [ ] Nom définitif, puis `pnpm -r publish` (validation humaine)
 
 ## Dette technique connue
@@ -66,7 +66,6 @@ contenu complet n'apparaît dans aucune réponse avant `unlocked`.
 
 ## Décisions à prendre avec Sami
 
-- Licence (MIT / Apache-2.0)
 - Nom définitif du SDK
 - Prix par défaut du CV
 - Traitement de `refunded`

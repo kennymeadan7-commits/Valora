@@ -25,13 +25,14 @@
 | 2026-11-14 | Génération du client Prisma par un `postinstall` **racine** (plus dans le paquet) | Un `postinstall` publié s'exécuterait chez l'intégrateur sans son schéma |
 | 2026-11-14 | Limite anti-abus = livrables par `ownerId` sur **24 h glissantes**, vérifiée avant l'aperçu ; `Storage.countDeliverablesByOwner` | Pas de coût IA pour un aperçu refusé ; comptage non transactionnel (dépassement d'une unité possible, accepté) |
 | 2026-11-14 | La route `/deliverables/:id/content` reste à l'hôte | Le format livré (PDF, HTML, ZIP) dépend du produit ; le SDK fournit `verifyDownloadToken` |
+| 2026-11-14 | Licence **MIT** pour tout le dépôt et chaque paquet | Licence permissive et courte : aucune friction pour les intégrateurs, y compris dans des produits commerciaux |
 
 ## Points ouverts (repris du PRD)
 
 - [x] Champs JSON exacts d'un webhook FedaPay → relevés le 14/11, voir `docs/fedapay-sandbox.md`.
 - [ ] État PreviewPay pour un paiement `refunded`.
 - [ ] Prix par défaut du CV une fois le coût d'IA mesuré.
-- [ ] Licence : MIT ou Apache-2.0.
+- [x] Licence : MIT.
 - [ ] Nom définitif : `PreviewPay` est un nom de travail (`Valora` côté dépôt).
 - [ ] Confirmer le traitement de `expired` (voir décision ci-dessus).
 - [ ] Extraction PDF : CV scannés (OCR) et mises en page exotiques non couverts.

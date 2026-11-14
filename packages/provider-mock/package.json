@@ -2,6 +2,7 @@
   "name": "@previewpay/provider-mock",
   "version": "0.1.0",
   "description": "Fournisseur de paiement simulé pour PreviewPay : tests et démos sans réseau.",
+  "license": "MIT",
   "keywords": [
     "previewpay",
     "mobile-money",

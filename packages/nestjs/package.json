@@ -2,6 +2,7 @@
   "name": "@previewpay/nestjs",
   "version": "0.1.0",
   "description": "Module NestJS PreviewPay : 6 endpoints (livrables, paiement, refus, téléchargement signé, webhook).",
+  "license": "MIT",
   "keywords": [
     "previewpay",
     "mobile-money",

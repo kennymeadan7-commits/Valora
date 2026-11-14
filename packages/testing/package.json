@@ -2,6 +2,7 @@
   "name": "@previewpay/testing",
   "version": "0.1.0",
   "description": "Suites de contrat PreviewPay pour valider un Storage ou un PaymentProvider (Vitest).",
+  "license": "MIT",
   "keywords": [
     "previewpay",
     "mobile-money",

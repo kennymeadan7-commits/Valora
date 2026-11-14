@@ -2,6 +2,7 @@
   "name": "@previewpay/core",
   "version": "0.1.0",
   "description": "Cœur PreviewPay : machine à états du livrable, moteur aperçu → paiement → déblocage, sans framework.",
+  "license": "MIT",
   "keywords": [
     "previewpay",
     "mobile-money",
