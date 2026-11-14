@@ -12,6 +12,7 @@ export default defineConfig({
       "@previewpay/provider-mock": pkg("provider-mock"),
       "@previewpay/testing": pkg("testing"),
       "@previewpay/provider-fedapay": pkg("provider-fedapay"),
+      "@previewpay/nestjs": pkg("nestjs"),
     },
   },
   test: {
