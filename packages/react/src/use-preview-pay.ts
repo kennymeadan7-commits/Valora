@@ -10,11 +10,28 @@ import type { Currency, PublicDeliverable, State } from "@previewpay/core";
  * `preview`, et `downloadUrl` n'apparaît qu'une fois le livrable `unlocked`.
  */
 
-/** Opérateurs Mobile Money supportés par la démo FedaPay. */
+/** Un opérateur Mobile Money proposable dans le paywall. */
+export interface MobileMoneyOperatorOption {
+  /** Valeur transmise à `POST /pay` (mode de paiement du fournisseur). */
+  value: string;
+  /** Libellé affiché. */
+  label: string;
+  /** Pays (ISO 3166-1 alpha-2, minuscules). */
+  country: string;
+  /** Indicatif téléphonique, pour l'aide à la saisie. */
+  dialCode: string;
+}
+
+/**
+ * Opérateurs pris en charge en paiement direct par `provider-fedapay`.
+ * Un intégrateur peut restreindre ou remplacer la liste (prop `operators`).
+ */
 export const MOBILE_MONEY_OPERATORS = [
-  { value: "mtn_benin", label: "MTN Bénin" },
-  { value: "moov_benin", label: "Moov Bénin" },
-] as const;
+  { value: "mtn_benin", label: "MTN Bénin", country: "bj", dialCode: "+229" },
+  { value: "moov_benin", label: "Moov Bénin", country: "bj", dialCode: "+229" },
+  { value: "moov_togo", label: "Moov Togo", country: "tg", dialCode: "+228" },
+  { value: "mtn_ci", label: "MTN Côte d'Ivoire", country: "ci", dialCode: "+225" },
+] as const satisfies ReadonlyArray<MobileMoneyOperatorOption>;
 
 export type MobileMoneyOperator =
   (typeof MOBILE_MONEY_OPERATORS)[number]["value"];

@@ -17,6 +17,8 @@ import type { SimulatedStatus } from "./api.js";
 const OPERATOR_LOOK: Readonly<Record<string, { name: string; app: string; color: string; ink: string }>> = {
   mtn_benin: { name: "MTN", app: "MoMo", color: "#ffcb05", ink: "#1d1d1b" },
   moov_benin: { name: "Moov Africa", app: "Flooz", color: "#0b5fa5", ink: "#ffffff" },
+  moov_togo: { name: "Moov Africa", app: "Flooz", color: "#0b5fa5", ink: "#ffffff" },
+  mtn_ci: { name: "MTN", app: "MoMo", color: "#ffcb05", ink: "#1d1d1b" },
 };
 
 interface MomoSimulatorProps {

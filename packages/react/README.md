@@ -24,6 +24,20 @@ import { PreviewPaywall } from "@previewpay/react";
 />
 ```
 
+Opérateurs : par défaut les quatre modes directs FedaPay (MTN Bénin, Moov
+Bénin, Moov Togo, MTN Côte d'Ivoire). Restreignez la liste aux pays que vous
+servez :
+
+```tsx
+import { MOBILE_MONEY_OPERATORS } from "@previewpay/react";
+
+<PreviewPaywall
+  deliverableId={id}
+  operators={MOBILE_MONEY_OPERATORS.filter((o) => o.country === "bj")}
+  defaultOperator="moov_benin"
+/>
+```
+
 Il gère : aperçu + prix, saisie du numéro et de l'opérateur, paiement en
 attente (scrutation), échec / expiration avec relance, refus de l'aperçu,
 déblocage avec lien de téléchargement.
@@ -51,4 +65,5 @@ formatPrice(price); // « 200 F CFA »
 | `fetchImpl` | `fetch` injecté (tests, SSR) | `globalThis.fetch` |
 | `internalKey` | en-tête `x-internal-key` | — |
 
-Exports utiles : `MOBILE_MONEY_OPERATORS`, `DEFAULT_OPERATOR`, `previewText`.
+Exports utiles : `MOBILE_MONEY_OPERATORS` (`value`, `label`, `country`,
+`dialCode`), `DEFAULT_OPERATOR`, `previewText`.

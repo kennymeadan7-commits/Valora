@@ -26,6 +26,8 @@
 | 2026-11-14 | Limite anti-abus = livrables par `ownerId` sur **24 h glissantes**, vérifiée avant l'aperçu ; `Storage.countDeliverablesByOwner` | Pas de coût IA pour un aperçu refusé ; comptage non transactionnel (dépassement d'une unité possible, accepté) |
 | 2026-11-14 | La route `/deliverables/:id/content` reste à l'hôte | Le format livré (PDF, HTML, ZIP) dépend du produit ; le SDK fournit `verifyDownloadToken` |
 | 2026-11-14 | Licence **MIT** pour tout le dépôt et chaque paquet | Licence permissive et courte : aucune friction pour les intégrateurs, y compris dans des produits commerciaux |
+| 2026-11-14 | **Réconciliation à la lecture** : `get()` relit le statut d'un paiement en attente depuis ≥ 10 s, au plus toutes les 10 s par livrable ; activée par défaut | Sans elle, un webhook perdu laissait un client payé sans livrable, et `expired` (sans webhook) n'était jamais détecté. Le polling du paywall suffit à la déclencher ; aucun cron requis |
+| 2026-11-14 | Paywall React : 4 opérateurs FedaPay par défaut (MTN/Moov Bénin, Moov Togo, MTN CI), liste configurable (`operators`) | La liste codée en dur excluait des pays déjà gérés par l'adaptateur |
 
 ## Points ouverts (repris du PRD)
 

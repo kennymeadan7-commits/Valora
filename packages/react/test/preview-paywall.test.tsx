@@ -264,3 +264,43 @@ describe("<PreviewPaywall /> — déblocage", () => {
     expect(screen.getByTestId("pay-button")).toBeTruthy();
   });
 });
+
+describe("<PreviewPaywall /> — opérateurs", () => {
+  it("propose par défaut les quatre modes directs FedaPay", async () => {
+    const fetchImpl = bouchon(() => reponseJson(livrable()));
+    render(<PreviewPaywall deliverableId="dlv_1" options={{ fetchImpl }} />);
+    const select = (await screen.findByTestId("operator")) as HTMLSelectElement;
+    expect([...select.options].map((o) => o.value)).toEqual([
+      "mtn_benin",
+      "moov_benin",
+      "moov_togo",
+      "mtn_ci",
+    ]);
+    expect(select.value).toBe("mtn_benin");
+  });
+
+  it("accepte une liste restreinte et envoie l'opérateur choisi à /pay", async () => {
+    const fetchImpl = bouchon((url, init) =>
+      reponseJson(livrable(init?.method === "POST" ? { state: "payment_pending" } : {})),
+    );
+    render(
+      <PreviewPaywall
+        deliverableId="dlv_1"
+        options={{ fetchImpl, pollIntervalMs: 0 }}
+        operators={[{ value: "mtn_ci", label: "MTN CI", country: "ci", dialCode: "+225" }]}
+      />,
+    );
+    const select = (await screen.findByTestId("operator")) as HTMLSelectElement;
+    expect([...select.options].map((o) => o.value)).toEqual(["mtn_ci"]);
+    expect((screen.getByTestId("phone") as HTMLInputElement).placeholder).toContain("+225");
+
+    fireEvent.change(screen.getByTestId("phone"), { target: { value: "+2250700000000" } });
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("pay-button"));
+    });
+    await waitFor(() => {
+      const pay = appels(fetchImpl).find(([, init]) => init?.method === "POST");
+      expect(JSON.parse(String(pay?.[1]?.body))).toMatchObject({ operator: "mtn_ci" });
+    });
+  });
+});

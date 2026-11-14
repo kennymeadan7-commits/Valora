@@ -6,6 +6,7 @@ export {
 } from "./use-preview-pay.js";
 export type {
   MobileMoneyOperator,
+  MobileMoneyOperatorOption,
   PreviewPayApiError,
   PreviewPayState,
   UsePreviewPayOptions,

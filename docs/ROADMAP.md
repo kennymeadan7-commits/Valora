@@ -57,6 +57,8 @@ contenu complet n'apparaît dans aucune réponse avant `unlocked`.
 - [x] README par paquet + `docs/GETTING-STARTED.md`
 - [x] Limite d'aperçus gratuits par utilisateur et par 24 h (`ownerId`, 429)
 - [x] Licence MIT (décidée le 14/11)
+- [x] Réconciliation automatique des paiements en attente (webhook perdu, `expired`)
+- [x] Opérateurs Mobile Money configurables dans le paywall (4 pays FedaPay)
 - [ ] Nom définitif, puis `pnpm -r publish` (validation humaine)
 
 ## Dette technique connue

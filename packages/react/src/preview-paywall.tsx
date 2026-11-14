@@ -5,6 +5,7 @@ import {
   DEFAULT_OPERATOR,
   MOBILE_MONEY_OPERATORS,
   usePreviewPay,
+  type MobileMoneyOperatorOption,
   type UsePreviewPayOptions,
 } from "./use-preview-pay.js";
 
@@ -28,6 +29,13 @@ export interface PreviewPaywallProps {
   onUnlocked?: (info: { downloadUrl: string | null }) => void;
   /** Options du hook (`baseUrl`, `fetchImpl`, `pollIntervalMs`, …). */
   options?: UsePreviewPayOptions;
+  /**
+   * Opérateurs proposés (par défaut : `MOBILE_MONEY_OPERATORS`, les quatre
+   * modes directs FedaPay). Restreignez-la aux pays que vous servez.
+   */
+  operators?: ReadonlyArray<MobileMoneyOperatorOption>;
+  /** Opérateur présélectionné ; le premier de `operators` sinon. */
+  defaultOperator?: string;
 }
 
 const styles: Record<string, CSSProperties> = {
@@ -194,6 +202,8 @@ export function PreviewPaywall(props: PreviewPaywallProps) {
     renderPreview,
     onUnlocked,
     options,
+    operators = MOBILE_MONEY_OPERATORS,
+    defaultOperator,
   } = props;
 
   const {
@@ -210,7 +220,14 @@ export function PreviewPaywall(props: PreviewPaywallProps) {
   } = usePreviewPay(deliverableId, options);
 
   const [phone, setPhone] = useState("");
-  const [operator, setOperator] = useState<string>(DEFAULT_OPERATOR);
+  const [operator, setOperator] = useState<string>(
+    () =>
+      defaultOperator ??
+      operators.find((item) => item.value === DEFAULT_OPERATOR)?.value ??
+      operators[0]?.value ??
+      DEFAULT_OPERATOR,
+  );
+  const dialCode = operators.find((item) => item.value === operator)?.dialCode;
   /** Vrai quand un paiement en attente est revenu à `previewed` (échec/expiration). */
   const [paymentFailed, setPaymentFailed] = useState(false);
 
@@ -278,7 +295,7 @@ export function PreviewPaywall(props: PreviewPaywallProps) {
             type="tel"
             inputMode="tel"
             autoComplete="tel"
-            placeholder="97 00 00 00"
+            placeholder={dialCode ? `${dialCode} 97 00 00 00` : "97 00 00 00"}
             value={phone}
             disabled={loading}
             onChange={(event) => setPhone(event.target.value)}
@@ -294,7 +311,7 @@ export function PreviewPaywall(props: PreviewPaywallProps) {
             onChange={(event) => setOperator(event.target.value)}
             style={styles.input}
           >
-            {MOBILE_MONEY_OPERATORS.map((item) => (
+            {operators.map((item) => (
               <option key={item.value} value={item.value}>
                 {item.label}
               </option>

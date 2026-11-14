@@ -165,6 +165,8 @@ export function Livrable({ id }: { id: string }) {
 }
 ```
 
+Servez-vous un seul pays ? `operators={MOBILE_MONEY_OPERATORS.filter((o) => o.country === "bj")}`.
+
 Besoin d'une interface sur mesure ? `usePreviewPay(id)` donne `status`,
 `preview`, `price`, `downloadUrl`, `pay(phone, operator)`, `reject(reason)`.
 
@@ -180,6 +182,8 @@ Besoin d'une interface sur mesure ? `usePreviewPay(id)` donne `status`,
 - Le contenu complet ne sort du serveur qu'après un paiement **vérifié**.
 - Un webhook reçu deux fois ne débloque qu'une fois (idempotence en base).
 - Un paiement refusé, annulé ou expiré ramène le livrable à l'aperçu, relançable.
+- Un webhook perdu ne bloque pas le client : la lecture du livrable relit le
+  statut chez le fournisseur (`reconcile`, activé par défaut).
 - Prix figé à la création, journal append-only de chaque transition.
 
 ## Écrire votre propre adaptateur
