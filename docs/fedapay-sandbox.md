@@ -156,7 +156,11 @@ même les numéros documentés comme réussis :
 | Canaux de paiement (`/settings/preferences?tab=payment_channels`) | `Momo Test`, Moov CI, Wave CI, Orange CI : **tous cochés** |
 | Type de compte actif (`/settings/account`) | `account.null` — champ en lecture seule, non modifiable |
 | Comptes Mobiles (`/settings/mobile-accounts`) | **aucun compte** enregistré (« Ajouter un compte mobile ») |
-| Remplissage du compte mobile | le formulaire exige un numéro valide **puis un code par SMS** |
+| Ouverture du formulaire « Ajouter un compte mobile » | **HTTP 500** sur `GET https://sandbox-api.fedapay.com/v1/mobile_accounts?locale=fr` |
+
+Le 500 tombe sur la simple **lecture** de la liste des comptes mobiles, pas sur
+l'enregistrement : l'endpoint est cassé pour ce compte, aucune action dans
+l'interface ne peut le réparer.
 
 Il n'y a donc **aucun interrupteur d'activation** à basculer : la sandbox est
 bien active, c'est le simulateur `momo_test` qui refuse les paiements.
