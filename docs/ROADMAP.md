@@ -16,11 +16,11 @@ contenu complet n'apparaît dans aucune réponse avant `unlocked`.
 
 ## Jalon 2 — persistance et API
 
-- [ ] `@previewpay/storage-prisma` + schéma Prisma (Deliverable, JournalEntry,
-      EventRecord) et migration initiale
+- [x] `@previewpay/storage-prisma` + schéma Prisma (Deliverable, JournalEntry,
+      PaymentEvent), migration initiale, contrat Storage sur PostgreSQL réel
 - [x] `@previewpay/nestjs` — 6 endpoints, webhook `rawBody`, garde interne, rate limit (25 tests)
-- [ ] `apps/api` — application de démo NestJS (`rawBody: true`), config par env
-- [ ] Tests d'intégration API + PostgreSQL (Docker)
+- [x] `apps/api` — app de démo NestJS (`rawBody: true`), config par env, bundle esbuild
+- [x] Tests d'intégration API (supertest, 7 tests) + contrat PostgreSQL (13 tests)
 - [x] Suite de contrat d'adaptateur (`@previewpay/testing`)
 
 ## Jalon 3 — FedaPay sandbox
@@ -36,8 +36,8 @@ contenu complet n'apparaît dans aucune réponse avant `unlocked`.
 
 ## Jalon 4 — interface et démo
 
-- [ ] `@previewpay/react` : `usePreviewPay`, `<PreviewPaywall />`
-- [ ] `apps/web` : parcours CV → aperçu filigrané → 200 F → téléchargement
+- [x] `@previewpay/react` : `usePreviewPay` (polling borné), `<PreviewPaywall />` (17 tests)
+- [ ] `apps/web` : parcours CV → aperçu filigrané → 200 F → téléchargement (en cours)
 - [ ] Métriques : taux de validation, taux de refus, marge, délai, échecs
 
 ## Décisions à prendre avec Sami

@@ -17,9 +17,9 @@ d'abord, on paie le livrable, pas le mois**.
 | Jalon | Contenu | État |
 | --- | --- | --- |
 | 1 | Cœur TypeScript testé sans réseau | ✅ |
-| 2 | Storage PostgreSQL + API NestJS | module NestJS livré, persistance à venir |
+| 2 | Storage PostgreSQL + API NestJS | ✅ storage Prisma, module NestJS, app de démo |
 | 3 | FedaPay sandbox + webhooks | provider + sandbox validés, endpoint à rebrancher sur un tunnel |
-| 4 | Paywall React + démo CV | à venir |
+| 4 | Paywall React + démo CV | paywall livré, démo web en cours |
 
 ## Démarrage
 
@@ -36,14 +36,14 @@ packages/
   core/              # machine à états, interfaces, moteur — zéro framework
   storage-memory/    # Storage en mémoire
   provider-mock/     # PaymentProvider simulé (webhooks signés)
-  storage-prisma/    # Storage PostgreSQL          (à venir)
+  storage-prisma/    # Storage PostgreSQL (Prisma)
   provider-fedapay/  # PaymentProvider FedaPay sandbox
   testing/           # suite de contrat d'adaptateur
   nestjs/            # PreviewPayModule + 6 endpoints
-  react/             # usePreviewPay + paywall     (à venir)
+  react/             # usePreviewPay + paywall
 apps/
-  api/               # démo NestJS                  (à venir)
-  web/               # démo React + Vite            (à venir)
+  api/               # démo NestJS
+  web/               # démo React + Vite
 ```
 
 ## La machine à états
@@ -62,6 +62,7 @@ draft ──> previewed ──pay──> payment_pending ──approved──> u
 - `docs/PRD — PreviewPay SDK …md` — spécification complète
 - `docs/DECISIONS.md` — journal des décisions et points ouverts
 - `docs/ROADMAP.md` — jalons et ce qui reste à faire
+- `docs/DEMO.md` — lancer la démo API + interface
 - `docs/fedapay-sandbox.md` — relevés réels de l'intégration FedaPay
 - `AGENTS.md` — conventions de code et répartition entre agents
 
