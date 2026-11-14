@@ -13,10 +13,14 @@ export default defineConfig({
       "@previewpay/testing": pkg("testing"),
       "@previewpay/provider-fedapay": pkg("provider-fedapay"),
       "@previewpay/nestjs": pkg("nestjs"),
+      "@previewpay/react": pkg("react"),
     },
   },
   test: {
-    include: ["packages/*/test/**/*.test.ts"],
+    include: [
+      "packages/*/test/**/*.test.{ts,tsx}",
+      "apps/api/test/**/*.test.ts",
+    ],
     environment: "node",
     globals: false,
   },

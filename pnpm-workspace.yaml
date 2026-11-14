@@ -4,3 +4,7 @@ packages:
 
 allowBuilds:
   esbuild: true
+  # Téléchargement des moteurs natifs de Prisma (packages/storage-prisma).
+  "@prisma/engines": true
+  prisma: true
+  "@prisma/client": true

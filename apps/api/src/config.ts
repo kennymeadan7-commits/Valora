@@ -1,0 +1,96 @@
+import type { Pricing, PreviewStrategy } from "@previewpay/core";
+import { FedaPayProvider } from "@previewpay/provider-fedapay";
+import { MockPaymentProvider } from "@previewpay/provider-mock";
+import { MemoryStorage } from "@previewpay/storage-memory";
+import type { PaymentProvider, Storage } from "@previewpay/core";
+
+/** Grille tarifaire de la démo, en entiers XOF. */
+export const DEMO_PRICING: Pricing = { cv: 200, presentation: 500 };
+
+export interface AppConfig {
+  port: number;
+  webOrigin: string;
+  storage: Storage;
+  provider: PaymentProvider;
+  pricing: Pricing;
+  preview: PreviewStrategy;
+  downloadSecret: string;
+  downloadBaseUrl: string;
+  internalApiKey: string | undefined;
+  maxRegenerations: number;
+  providerName: "mock" | "fedapay";
+}
+
+/** Aperçu utile mais inutilisable : début du texte + filigrane explicite. */
+export class TextPreviewStrategy implements PreviewStrategy {
+  constructor(private readonly maxChars = 420) {}
+
+  async makePreview(
+    content: unknown,
+    ctx: { type: string },
+  ): Promise<unknown> {
+    const text = typeof content === "string" ? content : JSON.stringify(content);
+    return {
+      kind: "text",
+      type: ctx.type,
+      text: text.slice(0, this.maxChars),
+      truncated: text.length > this.maxChars,
+      watermark: "APERÇU — PreviewPay",
+      totalChars: text.length,
+    };
+  }
+}
+
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`Variable d'environnement manquante : ${name}`);
+  return value;
+}
+
+function buildProvider(): { provider: PaymentProvider; name: "mock" | "fedapay" } {
+  const name = (process.env["PAYMENT_PROVIDER"] ?? "mock").toLowerCase();
+  if (name === "fedapay") {
+    return {
+      name: "fedapay",
+      provider: new FedaPayProvider({
+        secretKey: requireEnv("FEDAPAY_SECRET_KEY"),
+        webhookSecret: requireEnv("FEDAPAY_WEBHOOK_SECRET"),
+        environment: process.env["FEDAPAY_ENV"] === "live" ? "live" : "sandbox",
+        callbackUrl: process.env["FEDAPAY_CALLBACK_URL"],
+        phoneCountry: process.env["FEDAPAY_PHONE_COUNTRY"] ?? "bj",
+      }),
+    };
+  }
+  return {
+    name: "mock",
+    provider: new MockPaymentProvider({
+      secret: process.env["MOCK_WEBHOOK_SECRET"] ?? "mock_webhook_secret",
+    }),
+  };
+}
+
+/**
+ * Configuration de l'app de démo. Tout vient de l'environnement : aucun secret
+ * en dur, et le mode `mock` est le défaut pour que la démo tourne hors ligne.
+ */
+export function loadConfig(): AppConfig {
+  const { provider, name } = buildProvider();
+  const port = Number(process.env["PORT"] ?? 3000);
+
+  return {
+    port,
+    webOrigin: process.env["WEB_ORIGIN"] ?? "http://localhost:5173",
+    storage: new MemoryStorage(),
+    provider,
+    pricing: DEMO_PRICING,
+    preview: new TextPreviewStrategy(),
+    downloadSecret: requireEnv("PREVIEWPAY_DOWNLOAD_SECRET"),
+    downloadBaseUrl:
+      process.env["PREVIEWPAY_DOWNLOAD_BASE_URL"] ??
+      process.env["PREVIEWPAY_PUBLIC_URL"] ??
+      `http://localhost:${port}`,
+    internalApiKey: process.env["PREVIEWPAY_INTERNAL_KEY"],
+    maxRegenerations: Number(process.env["PREVIEWPAY_MAX_REGENERATIONS"] ?? 2),
+    providerName: name,
+  };
+}

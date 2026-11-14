@@ -5,17 +5,40 @@
     "experimentalDecorators": true,
     "baseUrl": ".",
     "paths": {
-      "@previewpay/core": ["packages/core/src/index.ts"],
-      "@previewpay/storage-memory": ["packages/storage-memory/src/index.ts"],
-      "@previewpay/provider-mock": ["packages/provider-mock/src/index.ts"],
-      "@previewpay/testing": ["packages/testing/src/index.ts"],
-      "@previewpay/provider-fedapay": ["packages/provider-fedapay/src/index.ts"],
-      "@previewpay/nestjs": ["packages/nestjs/src/index.ts"]
+      "@previewpay/core": [
+        "packages/core/src/index.ts"
+      ],
+      "@previewpay/storage-memory": [
+        "packages/storage-memory/src/index.ts"
+      ],
+      "@previewpay/provider-mock": [
+        "packages/provider-mock/src/index.ts"
+      ],
+      "@previewpay/testing": [
+        "packages/testing/src/index.ts"
+      ],
+      "@previewpay/provider-fedapay": [
+        "packages/provider-fedapay/src/index.ts"
+      ],
+      "@previewpay/nestjs": [
+        "packages/nestjs/src/index.ts"
+      ],
+      "@previewpay/react": [
+        "packages/react/src/index.ts"
+      ],
+      "@previewpay/storage-prisma": [
+        "packages/storage-prisma/src/index.ts"
+      ]
     }
   },
   "include": [
     "packages/*/src/**/*.ts",
+    "packages/*/src/**/*.tsx",
     "packages/*/test/**/*.ts",
+    "packages/*/test/**/*.tsx",
+    "apps/api/src/**/*.ts",
+    "apps/api/test/**/*.ts",
+    "scripts/**/*.ts",
     "vitest.config.ts"
   ]
 }

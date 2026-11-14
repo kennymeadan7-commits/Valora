@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "experimentalDecorators": true,
+    "types": ["node"],
+    "baseUrl": "../..",
+    "paths": {
+      "@previewpay/core": ["packages/core/src/index.ts"],
+      "@previewpay/nestjs": ["packages/nestjs/src/index.ts"],
+      "@previewpay/storage-memory": ["packages/storage-memory/src/index.ts"],
+      "@previewpay/provider-mock": ["packages/provider-mock/src/index.ts"],
+      "@previewpay/provider-fedapay": ["packages/provider-fedapay/src/index.ts"],
+      "@previewpay/testing": ["packages/testing/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts"]
+}

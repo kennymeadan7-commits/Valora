@@ -1,0 +1,61 @@
+// ---------------------------------------------------------------------------
+// PreviewPay — persistance PostgreSQL du cœur.
+// Le schéma ne décrit que les trois objets du port `Storage` : livrable,
+// journal append-only et événements fournisseur (idempotence).
+// ---------------------------------------------------------------------------
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Boîte noire du SDK. `content` ne doit jamais quitter le serveur avant
+/// l'état `unlocked` ; `preview` est le seul champ exposable.
+model Deliverable {
+  id               String   @id
+  type             String
+  state            String
+  /// Entier XOF, figé à la création (changer la grille ne modifie pas l'existant).
+  price            Int
+  currency         String
+  /// Contenu complet — reste côté serveur.
+  content          Json
+  /// Aperçu produit par la `PreviewStrategy`, seul élément exposable.
+  preview          Json
+  paymentId        String?  @unique
+  paymentUrl       String?
+  regenerations    Int
+  maxRegenerations Int
+  createdAt        DateTime @db.Timestamptz(3)
+  updatedAt        DateTime @db.Timestamptz(3)
+}
+
+/// Journal append-only : une entrée par transition acceptée (et par
+/// régénération `previewed → previewed`). Aucune relation foreign key :
+/// le journal reste insérable indépendamment de l'existence du livrable.
+model JournalEntry {
+  id            Int      @id @default(autoincrement())
+  deliverableId String
+  from          String
+  to            String
+  at            DateTime @db.Timestamptz(3)
+  cause         String
+  eventId       String?
+  paymentId     String?
+
+  @@index([deliverableId])
+}
+
+/// Événement fournisseur déjà vu : la clé primaire porte l'`eventId`, ce qui
+/// rend l'idempotence garantie par la base elle-même.
+model PaymentEvent {
+  id         String   @id
+  type       String
+  paymentId  String?
+  receivedAt DateTime @db.Timestamptz(3)
+  payload    Json?
+}
