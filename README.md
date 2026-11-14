@@ -61,6 +61,8 @@ draft ──> previewed ──pay──> payment_pending ──approved──> u
 
 - `docs/PRD — PreviewPay SDK …md` — spécification complète
 - `docs/DECISIONS.md` — journal des décisions et points ouverts
+- `docs/ROADMAP.md` — jalons et ce qui reste à faire
+- `docs/fedapay-sandbox.md` — relevés réels de l'intégration FedaPay
 - `AGENTS.md` — conventions de code et répartition entre agents
 
 ## Licence

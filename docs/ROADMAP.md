@@ -1,0 +1,48 @@
+# Roadmap technique
+
+Coche au fur et à mesure. Chaque jalon se ferme sur un critère vérifiable
+(voir le PRD).
+
+## Jalon 1 — cœur testé sans réseau ✅
+
+- [x] `@previewpay/core` : 5 états, transitions atomiques, journal
+      append-only, prix figé, idempotence, déblocage vérifié par API
+- [x] `storage-memory`, `provider-mock` (webhooks signés)
+- [x] Jeton de téléchargement HMAC à durée courte
+- [x] 30 tests Vitest, `pnpm typecheck` strict, CI GitHub Actions
+
+**Critère atteint** : un webhook reçu deux fois ne débloque qu'une fois ; le
+contenu complet n'apparaît dans aucune réponse avant `unlocked`.
+
+## Jalon 2 — persistance et API
+
+- [ ] `@previewpay/storage-prisma` + schéma Prisma (Deliverable, JournalEntry,
+      EventRecord) et migration initiale
+- [x] `@previewpay/nestjs` — 6 endpoints (agent en cours)
+- [ ] `apps/api` — application de démo NestJS (`rawBody: true`), config par env
+- [ ] Tests d'intégration API + PostgreSQL (Docker)
+- [ ] Suite de contrat d'adaptateur (`@previewpay/testing`)
+
+## Jalon 3 — FedaPay sandbox
+
+- [x] Clés sandbox générées (scopes Transactions)
+- [x] Endpoint webhook créé, secret `wh_sandbox_…` stocké dans `.env`
+- [x] `@previewpay/provider-fedapay` : transactions, jeton, direct MTN/Moov,
+      vérification de signature sur corps brut, anti-rejeu
+- [x] Schéma réel du webhook relevé et documenté
+- [ ] Rebrancher l'endpoint sur le tunnel HTTPS local
+- [ ] Rejouer un webhook depuis le tableau de bord (test du doublon)
+- [ ] Paiement direct `mtn_benin` / `moov_benin` de bout en bout
+
+## Jalon 4 — interface et démo
+
+- [ ] `@previewpay/react` : `usePreviewPay`, `<PreviewPaywall />`
+- [ ] `apps/web` : parcours CV → aperçu filigrané → 200 F → téléchargement
+- [ ] Métriques : taux de validation, taux de refus, marge, délai, échecs
+
+## Décisions à prendre avec Sami
+
+- Licence (MIT / Apache-2.0)
+- Nom définitif du SDK
+- Prix par défaut du CV
+- Traitement de `refunded`
