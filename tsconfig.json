@@ -7,7 +7,8 @@
       "@previewpay/core": ["packages/core/src/index.ts"],
       "@previewpay/storage-memory": ["packages/storage-memory/src/index.ts"],
       "@previewpay/provider-mock": ["packages/provider-mock/src/index.ts"],
-      "@previewpay/testing": ["packages/testing/src/index.ts"]
+      "@previewpay/testing": ["packages/testing/src/index.ts"],
+      "@previewpay/provider-fedapay": ["packages/provider-fedapay/src/index.ts"]
     }
   },
   "include": [

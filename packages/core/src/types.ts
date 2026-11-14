@@ -29,6 +29,8 @@ export interface Deliverable {
   /** Aperçu produit par la PreviewStrategy, seul élément exposable. */
   preview: unknown;
   paymentId: string | null;
+  /** Page de paiement du fournisseur, si l'opérateur exige une redirection. */
+  paymentUrl: string | null;
   regenerations: number;
   maxRegenerations: number;
   createdAt: Date;
@@ -46,6 +48,8 @@ export interface PublicDeliverable {
   regenerations: number;
   maxRegenerations: number;
   downloadUrl: string | null;
+  /** À ouvrir si le paiement direct n'est pas disponible (repli). */
+  paymentUrl: string | null;
 }
 
 export interface EventRecord {
@@ -107,7 +111,9 @@ export interface ParsedWebhook {
 
 export interface PaymentProvider {
   readonly name: string;
-  createPayment(input: CreatePaymentInput): Promise<{ paymentId: string }>;
+  createPayment(
+    input: CreatePaymentInput,
+  ): Promise<{ paymentId: string; paymentUrl?: string | null }>;
   getPaymentStatus(paymentId: string): Promise<PaymentStatus>;
   /** Doit lever `InvalidSignatureError` si la signature ne couvre pas rawBody. */
   parseWebhook(

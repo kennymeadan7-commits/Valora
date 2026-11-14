@@ -115,6 +115,7 @@ export class PreviewPay {
       content: input.content,
       preview,
       paymentId: null,
+      paymentUrl: null,
       regenerations: 0,
       maxRegenerations: input.maxRegenerations ?? this.maxRegenerations,
       createdAt: now,
@@ -215,8 +216,11 @@ export class PreviewPay {
     };
 
     let paymentId: string;
+    let paymentUrl: string | null = null;
     try {
-      ({ paymentId } = await this.provider.createPayment(paymentInput));
+      const created = await this.provider.createPayment(paymentInput);
+      paymentId = created.paymentId;
+      paymentUrl = created.paymentUrl ?? null;
     } catch (err) {
       // On relâche la réservation : le livrable redevient relançable.
       await this.storage.transition(id, "payment_pending", "previewed", {
@@ -229,10 +233,11 @@ export class PreviewPay {
     await this.storage.saveDeliverable({
       ...current,
       paymentId,
+      paymentUrl,
       updatedAt: this.now(),
     });
 
-    return this.toPublic({ ...current, paymentId });
+    return this.toPublic({ ...current, paymentId, paymentUrl });
   }
 
   /**
@@ -356,6 +361,7 @@ export class PreviewPay {
       downloadUrl: unlocked
         ? `${this.baseUrl}/deliverables/${d.id}/download?token=${encodeURIComponent(token)}`
         : null,
+      paymentUrl: d.paymentUrl ?? null,
     };
   }
 }

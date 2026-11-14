@@ -12,7 +12,12 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {
+    "@previewpay/core": "workspace:*",
+    "@previewpay/provider-fedapay": "workspace:*",
+    "@previewpay/provider-mock": "workspace:*",
+    "@previewpay/storage-memory": "workspace:*",
     "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   }

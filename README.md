@@ -18,7 +18,7 @@ d'abord, on paie le livrable, pas le mois**.
 | --- | --- | --- |
 | 1 | Cœur TypeScript testé sans réseau | ✅ |
 | 2 | Storage PostgreSQL + API NestJS | à venir |
-| 3 | FedaPay sandbox + webhooks | à venir |
+| 3 | FedaPay sandbox + webhooks | provider + sandbox validés, endpoint à rebrancher sur un tunnel |
 | 4 | Paywall React + démo CV | à venir |
 
 ## Démarrage
@@ -37,7 +37,7 @@ packages/
   storage-memory/    # Storage en mémoire
   provider-mock/     # PaymentProvider simulé (webhooks signés)
   storage-prisma/    # Storage PostgreSQL          (à venir)
-  provider-fedapay/  # PaymentProvider FedaPay     (à venir)
+  provider-fedapay/  # PaymentProvider FedaPay sandbox
   testing/           # suite de contrat d'adaptateur (à venir)
   nestjs/            # PreviewPayModule            (à venir)
   react/             # usePreviewPay + paywall     (à venir)

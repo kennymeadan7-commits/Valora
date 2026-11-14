@@ -11,6 +11,7 @@ export default defineConfig({
       "@previewpay/storage-memory": pkg("storage-memory"),
       "@previewpay/provider-mock": pkg("provider-mock"),
       "@previewpay/testing": pkg("testing"),
+      "@previewpay/provider-fedapay": pkg("provider-fedapay"),
     },
   },
   test: {
