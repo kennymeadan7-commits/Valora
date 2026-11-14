@@ -67,6 +67,14 @@ Le script affiche la page de paiement à ouvrir puis suit l'état jusqu'à
 `unlocked`, en imprimant chaque transition horodatée. Il attend un tunnel
 public (voir `docs/fedapay-sandbox.md`) pour recevoir les webhooks.
 
+## ⚠️ Tests et base de démo
+
+Les tests PostgreSQL (`packages/storage-prisma`, `apps/api`) **vident** les
+tables `Deliverable`, `JournalEntry` et `PaymentEvent` entre deux cas. Ne lance
+pas `pnpm test` pendant que tu observes la démo sur `STORAGE=prisma` : les
+données affichées disparaissent. Utilise une base séparée si tu as besoin des
+deux en même temps (`DATABASE_URL=…/previewpay_demo`).
+
 ## Raccourcis utiles
 
 ```sh
