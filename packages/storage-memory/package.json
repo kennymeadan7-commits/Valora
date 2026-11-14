@@ -1,14 +1,60 @@
 {
   "name": "@previewpay/storage-memory",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
+  "description": "Stockage en mémoire pour PreviewPay (tests, démos, référence de comportement).",
+  "keywords": [
+    "previewpay",
+    "mobile-money",
+    "xof",
+    "pay-per-deliverable",
+    "ai",
+    "storage"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kennymeadan7-commits/Valora.git",
+    "directory": "packages/storage-memory"
+  },
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node ../../scripts/build-packages.mjs storage-memory",
+    "prepack": "node ../../scripts/build-packages.mjs storage-memory"
   },
   "dependencies": {
     "@previewpay/core": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "import": {
+          "types": "./dist/index.d.ts",
+          "default": "./dist/index.js"
+        },
+        "require": {
+          "types": "./dist/index.d.cts",
+          "default": "./dist/index.cjs"
+        }
+      },
+      "./package.json": "./package.json"
+    }
   }
 }

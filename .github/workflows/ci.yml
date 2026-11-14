@@ -18,3 +18,18 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm test
+
+  # Le SDK tel qu'un intégrateur le recevrait : build, tarballs, puis
+  # installation dans un projet vierge (ESM, CJS, NestJS, React, Prisma, types).
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm pack:check
+      - run: pnpm consumer:check

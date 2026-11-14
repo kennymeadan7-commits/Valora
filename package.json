@@ -10,12 +10,16 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "node scripts/build-packages.mjs",
+    "pack:check": "node scripts/pack-check.mjs --out .packs",
+    "consumer:check": "node scripts/consumer-check.mjs --packs .packs",
     "build:api": "node scripts/build-api.mjs",
     "demo:api": "pnpm --filter @previewpay/demo-api start",
     "demo:web": "pnpm --filter @previewpay/demo-web dev",
     "smoke:fedapay": "tsx --env-file=.env scripts/smoke-fedapay.ts",
     "db:up": "docker compose up -d db",
-    "sample:cv": "tsx scripts/make-sample-cv.ts"
+    "sample:cv": "tsx scripts/make-sample-cv.ts",
+    "postinstall": "pnpm --filter @previewpay/storage-prisma generate"
   },
   "devDependencies": {
     "@previewpay/core": "workspace:*",
@@ -24,6 +28,7 @@
     "@previewpay/storage-memory": "workspace:*",
     "@types/node": "^26.6.6",
     "esbuild": "^0.28.2",
+    "tsup": "8.5.0",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
