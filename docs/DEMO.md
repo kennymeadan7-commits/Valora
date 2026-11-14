@@ -55,6 +55,18 @@ il est relançable sans frais.
 « mode démo » pour simuler Approuver / Refuser / Expirer. Le front appelle
 l'API en même origine via le proxy Vite (`/deliverables`, `/demo`).
 
+## Preuve de bout en bout avec FedaPay sandbox
+
+```sh
+pnpm --filter @previewpay/demo-api build
+STORAGE=prisma PAYMENT_PROVIDER=fedapay node --env-file=.env apps/api/dist/server.mjs
+pnpm tsx --env-file=.env scripts/fedapay-watch.ts   # crée, paie, suit l'état
+```
+
+Le script affiche la page de paiement à ouvrir puis suit l'état jusqu'à
+`unlocked`, en imprimant chaque transition horodatée. Il attend un tunnel
+public (voir `docs/fedapay-sandbox.md`) pour recevoir les webhooks.
+
 ## Raccourcis utiles
 
 ```sh
