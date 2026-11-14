@@ -14,7 +14,8 @@
     "demo:api": "pnpm --filter @previewpay/demo-api start",
     "demo:web": "pnpm --filter @previewpay/demo-web dev",
     "smoke:fedapay": "tsx --env-file=.env scripts/smoke-fedapay.ts",
-    "db:up": "docker compose up -d db"
+    "db:up": "docker compose up -d db",
+    "sample:cv": "tsx scripts/make-sample-cv.ts"
   },
   "devDependencies": {
     "@previewpay/core": "workspace:*",

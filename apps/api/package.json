@@ -19,12 +19,16 @@
     "@previewpay/storage-memory": "workspace:*",
     "@previewpay/storage-prisma": "workspace:*",
     "@prisma/client": "6.19.3",
+    "multer": "2.5.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "unpdf": "1.4.0"
   },
   "devDependencies": {
     "@nestjs/testing": "^12.5.0",
+    "@types/multer": "^2.3.0",
     "@types/supertest": "^7.2.1",
+    "pdf-lib": "1.17.1",
     "supertest": "^7.3.2",
     "tsx": "^4.23.15"
   }

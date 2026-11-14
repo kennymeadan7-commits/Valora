@@ -116,11 +116,14 @@ describe.skipIf(!disponible)("démo API sur PostgreSQL", () => {
     expect(ligne?.state).toBe("previewed");
     expect(ligne?.price).toBe(200);
     expect(ligne?.currency).toBe("XOF");
-    expect(JSON.stringify(ligne?.content)).toContain("Awa Prisma");
-    // `content` en base est bien plus riche que l'aperçu envoyé au client.
-    expect(JSON.stringify(ligne?.content).length).toBeGreaterThan(
-      String((res.body.preview as { text: string }).text).length,
-    );
+    // `content` en base : les données structurées du CV (format `cv/v1`).
+    expect(ligne?.content).toMatchObject({
+      format: "cv/v1",
+      data: { fullName: "Awa Prisma", headline: "Chargée de communication" },
+    });
+    // L'aperçu, lui, est un rendu caviardé produit côté serveur.
+    expect(res.body.preview.kind).toBe("cv");
+    expect(res.body.preview.html).toContain("APERÇU · PREVIEWPAY");
   });
 
   it("écrit une entrée de journal par transition, dans l'ordre", async () => {
@@ -184,7 +187,9 @@ describe.skipIf(!disponible)("démo API sur PostgreSQL", () => {
     const fichier = await request(server)
       .get(new URL(download.body.url).pathname + new URL(download.body.url).search)
       .expect(200);
-    expect(fichier.text).toContain("## Langues");
+    expect(fichier.headers["content-type"]).toContain("text/html");
+    expect(fichier.text).toContain("Fatou Débloquée");
+    expect(fichier.text).not.toContain("APERÇU · PREVIEWPAY");
   });
 
   it("n'enregistre qu'une fois un webhook réémis", async () => {

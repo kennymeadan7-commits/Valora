@@ -9,17 +9,39 @@ import {
   Inject,
   NotFoundException,
   Param,
+  PayloadTooLargeException,
   Post,
+  UnprocessableEntityException,
+  UploadedFile,
+  UseInterceptors,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import type { PaymentStatus, PreviewPay, PublicDeliverable } from "@previewpay/core";
 import { PREVIEWPAY_ENGINE } from "@previewpay/nestjs";
 import { MockPaymentProvider } from "@previewpay/provider-mock";
-import { renderCv, type CvInput } from "./cv.js";
+import {
+  CvValidationError,
+  PdfExtractionError,
+  extractCvFromLines,
+  extractPdfLines,
+  normalizeCvInput,
+  type CvContent,
+  type ExtractionReport,
+} from "./cv/index.js";
 import { config } from "./instance.js";
 
-interface CreateCvBody extends Partial<CvInput> {
-  fullName?: string;
-  headline?: string;
+/** Taille maximale d'un CV importé (5 Mo). */
+export const MAX_PDF_BYTES = 5 * 1024 * 1024;
+
+interface UploadedPdf {
+  buffer: Buffer;
+  size: number;
+  mimetype: string;
+  originalname: string;
+}
+
+export interface ImportResponse extends ExtractionReport {
+  pages: number;
 }
 
 const STATUTS: readonly PaymentStatus[] = [
@@ -40,39 +62,62 @@ export class DemoController {
     @Inject(PREVIEWPAY_ENGINE) private readonly previewPay: PreviewPay,
   ) {}
 
+  /**
+   * Génère le CV (le « livrable IA ») et le confie au SDK. Le contenu stocké
+   * est structuré (`cv/v1`) : le HTML final et l'aperçu en dérivent, côté
+   * serveur uniquement.
+   */
   @Post("cv")
   @HttpCode(201)
-  async createCv(@Body() body: CreateCvBody): Promise<PublicDeliverable> {
-    if (!body?.fullName || !body?.headline) {
-      throw new BadRequestException(
-        "`fullName` et `headline` sont requis pour générer un CV",
+  async createCv(@Body() body: unknown): Promise<PublicDeliverable> {
+    let content: CvContent;
+    try {
+      content = { format: "cv/v1", data: normalizeCvInput(body) };
+    } catch (cause) {
+      if (cause instanceof CvValidationError) {
+        throw new BadRequestException(cause.message);
+      }
+      throw cause;
+    }
+    return this.previewPay.create({ type: "cv", content });
+  }
+
+  /**
+   * Import d'un CV existant (PDF, champ multipart `file`). Le texte est
+   * extrait sur le serveur, sans service tiers, puis analysé pour pré-remplir
+   * le formulaire. Rien n'est stocké : ce n'est pas encore un livrable.
+   */
+  @Post("cv/import")
+  @HttpCode(200)
+  @UseInterceptors(
+    FileInterceptor("file", { limits: { fileSize: MAX_PDF_BYTES, files: 1 } }),
+  )
+  async importCv(
+    @UploadedFile() file: UploadedPdf | undefined,
+  ): Promise<ImportResponse> {
+    if (!file) {
+      throw new BadRequestException("Aucun fichier reçu (champ « file » attendu)");
+    }
+    if (file.size > MAX_PDF_BYTES) {
+      throw new PayloadTooLargeException("PDF trop volumineux (5 Mo maximum)");
+    }
+
+    let extracted: Awaited<ReturnType<typeof extractPdfLines>>;
+    try {
+      extracted = await extractPdfLines(file.buffer);
+    } catch (cause) {
+      if (cause instanceof PdfExtractionError) {
+        throw new UnprocessableEntityException(cause.message);
+      }
+      throw cause;
+    }
+    if (extracted.lines.length === 0) {
+      throw new UnprocessableEntityException(
+        "Ce PDF ne contient pas de texte (document scanné ?) : remplissez le formulaire à la main.",
       );
     }
 
-    const content = renderCv({
-      fullName: body.fullName,
-      headline: body.headline,
-      ...(body.email ? { email: body.email } : {}),
-      ...(body.phone ? { phone: body.phone } : {}),
-      ...(body.city ? { city: body.city } : {}),
-      skills: body.skills ?? ["Gestion de projet", "Rédaction", "Communication"],
-      experiences: body.experiences ?? [
-        {
-          role: "Chargé·e de projet",
-          company: "Entreprise locale",
-          period: "2022 — aujourd'hui",
-          highlights: [
-            "Pilotage de 4 projets clients en simultané",
-            "Réduction de 20 % du délai de livraison",
-          ],
-        },
-      ],
-      education: body.education ?? [
-        { diploma: "Licence", school: "Université nationale", year: "2021" },
-      ],
-    });
-
-    return this.previewPay.create({ type: "cv", content });
+    return { ...extractCvFromLines(extracted.lines), pages: extracted.pages };
   }
 
   /**

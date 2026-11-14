@@ -1,4 +1,5 @@
 import type { Pricing, PreviewStrategy } from "@previewpay/core";
+import { CvPreviewStrategy } from "./cv/index.js";
 import { FedaPayProvider } from "@previewpay/provider-fedapay";
 import { MockPaymentProvider } from "@previewpay/provider-mock";
 import { MemoryStorage } from "@previewpay/storage-memory";
@@ -29,26 +30,6 @@ export interface AppConfig {
    * illisible : la marge n'est alors pas calculable (le cœur renvoie `null`).
    */
   aiCostPerDeliverable: number | null;
-}
-
-/** Aperçu utile mais inutilisable : début du texte + filigrane explicite. */
-export class TextPreviewStrategy implements PreviewStrategy {
-  constructor(private readonly maxChars = 420) {}
-
-  async makePreview(
-    content: unknown,
-    ctx: { type: string },
-  ): Promise<unknown> {
-    const text = typeof content === "string" ? content : JSON.stringify(content);
-    return {
-      kind: "text",
-      type: ctx.type,
-      text: text.slice(0, this.maxChars),
-      truncated: text.length > this.maxChars,
-      watermark: "APERÇU — PreviewPay",
-      totalChars: text.length,
-    };
-  }
 }
 
 function requireEnv(name: string): string {
@@ -120,7 +101,7 @@ export function loadConfig(): AppConfig {
     storageKind: kind,
     provider,
     pricing: DEMO_PRICING,
-    preview: new TextPreviewStrategy(),
+    preview: new CvPreviewStrategy(),
     downloadSecret: requireEnv("PREVIEWPAY_DOWNLOAD_SECRET"),
     downloadBaseUrl:
       process.env["PREVIEWPAY_DOWNLOAD_BASE_URL"] ??
@@ -134,3 +115,6 @@ export function loadConfig(): AppConfig {
     ),
   };
 }
+
+/** Réexport : la stratégie texte reste disponible pour les autres types. */
+export { TextPreviewStrategy } from "./cv/index.js";

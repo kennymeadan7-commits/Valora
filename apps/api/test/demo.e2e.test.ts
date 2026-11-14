@@ -39,7 +39,19 @@ const CV = {
   fullName: "Awa Houngbédji",
   headline: "Chargée de communication",
   email: "awa@example.com",
-  skills: ["Réseaux sociaux", "Rédaction", "Événementiel"],
+  phone: "+229 97 00 00 01",
+  city: "Cotonou",
+  skills: ["Réseaux sociaux", "Rédaction", "Événementiel", "Photographie"],
+  languages: "Français : courant, Anglais : intermédiaire",
+  experiences: [
+    {
+      role: "Chargée de communication",
+      company: "ONG Lumière",
+      period: "2021 — aujourd'hui",
+      highlights: ["Hausse de 40 % de l'audience Facebook en un an"],
+    },
+  ],
+  education: [{ diploma: "Licence en communication", school: "UAC", year: "2020" }],
 };
 
 async function creerEtPayer() {
@@ -68,6 +80,16 @@ describe("démo API — parcours CV", () => {
     expect(res.body.preview.truncated).toBe(true);
     expect(res.body.preview.watermark).toContain("APERÇU");
     expect(res.body.downloadUrl).toBeNull();
+
+    // Aperçu HTML produit côté serveur : le gabarit réel, mais les parties
+    // payantes ne sont pas dans le document envoyé au navigateur.
+    expect(res.body.preview.kind).toBe("cv");
+    expect(res.body.preview.html).toContain("Awa Houngbédji");
+    expect(res.body.preview.html).toContain("APERÇU · PREVIEWPAY");
+    expect(res.body.preview.html).not.toContain("audience Facebook");
+    expect(res.body.preview.html).not.toContain("awa@example.com");
+    expect(res.body.preview.html).not.toContain("Licence en communication");
+    expect(res.body.preview.text).not.toContain("awa@example.com");
   });
 
   it("refuse un CV sans nom ni poste", async () => {
@@ -105,10 +127,28 @@ describe("démo API — parcours CV", () => {
       .query({ token })
       .expect(200);
 
-    expect(file.text).toContain("## Compétences");
-    expect(file.text).toContain("## Langues");
-    expect(file.text).toContain("libéré après paiement");
-    expect(file.text.length).toBeGreaterThan(created.preview.text.length);
+    // Par défaut : le CV final en HTML A4, complet et sans filigrane.
+    expect(file.headers["content-type"]).toContain("text/html");
+    expect(file.headers["content-security-policy"]).toContain("default-src 'none'");
+    expect(file.text).toContain("<!doctype html>");
+    expect(file.text).toContain("Hausse de 40 % de l&#39;audience Facebook");
+    expect(file.text).toContain("awa@example.com");
+    expect(file.text).not.toContain("APERÇU · PREVIEWPAY");
+
+    const markdown = await request(server)
+      .get(`/deliverables/${created.id}/content`)
+      .query({ token, format: "md" })
+      .expect(200);
+    expect(markdown.headers["content-type"]).toContain("text/markdown");
+    expect(markdown.text).toContain("## Compétences");
+    expect(markdown.text).toContain("## Langues");
+    expect(markdown.text).toContain("libéré après paiement");
+    expect(markdown.text.length).toBeGreaterThan(created.preview.text.length);
+
+    await request(server)
+      .get(`/deliverables/${created.id}/content`)
+      .query({ token, format: "exe" })
+      .expect(400);
   });
 
   it("rejette un webhook dupliqué sans double déblocage", async () => {
