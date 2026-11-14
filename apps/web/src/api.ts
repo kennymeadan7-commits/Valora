@@ -36,12 +36,67 @@ export type DeliverableState =
   | "unlocked"
   | "rejected";
 
+export type CvTheme = "emeraude" | "indigo" | "ardoise" | "terracotta";
+
+export interface CvExperienceInput {
+  role: string;
+  company: string;
+  period: string;
+  location?: string;
+  highlights: string[];
+}
+
+export interface CvEducationInput {
+  diploma: string;
+  school: string;
+  year: string;
+}
+
+export interface CvLanguageInput {
+  name: string;
+  level?: string;
+}
+
+/** Corps de `POST /demo/cv` (voir `apps/api/src/cv/model.ts`). */
 export interface CreateCvInput {
   fullName: string;
   headline: string;
   email?: string;
+  phone?: string;
+  city?: string;
+  website?: string;
+  summary?: string;
   skills?: string[];
+  languages?: CvLanguageInput[];
+  experiences?: CvExperienceInput[];
+  education?: CvEducationInput[];
+  interests?: string[];
+  theme?: CvTheme;
 }
+
+/** Réponse de `POST /demo/cv/import` : champs pré-remplis à relire. */
+export interface CvImportResult {
+  fields: {
+    fullName: string;
+    headline: string;
+    email: string;
+    phone: string;
+    city: string;
+    website: string;
+    summary: string;
+    skills: string[];
+    languages: CvLanguageInput[];
+    experiences: CvExperienceInput[];
+    education: CvEducationInput[];
+    interests: string[];
+  };
+  found: string[];
+  lines: number;
+  pages: number;
+}
+
+/** Format du fichier final servi par `/deliverables/:id/content`. */
+export type ContentFormat = "html" | "md";
 
 /** Statuts d'essai de paiement simulables avec `provider-mock`. */
 export type SimulatedStatus = "approved" | "declined" | "expired";
@@ -56,6 +111,8 @@ export interface DownloadLinkView {
 export interface DemoHealth {
   status: string;
   provider: string;
+  /** `memory` ou `prisma`. */
+  storage?: string;
 }
 
 /**
@@ -188,6 +245,20 @@ export function createCv(input: CreateCvInput): Promise<DeliverableView> {
 }
 
 /**
+ * `POST /demo/cv/import` — envoie un PDF ; le serveur en extrait le texte et
+ * renvoie les champs détectés. Rien n'est stocké.
+ */
+export async function importCvPdf(file: File): Promise<CvImportResult> {
+  const form = new FormData();
+  form.append("file", file, file.name);
+  return requestJson<CvImportResult>("/demo/cv/import", {
+    method: "POST",
+    headers: { accept: "application/json" },
+    body: form,
+  });
+}
+
+/**
  * `GET /deliverables/:id` — vue publique rafraîchie : statut, prix, aperçu.
  * Utilisée par la démo pour garder sa synthèse alignée sur le serveur
  * (paiement en attente, régénération, déblocage par webhook).
@@ -257,7 +328,11 @@ export function fetchDownloadLink(id: string): Promise<DownloadLinkView> {
  * jeton et on ne remplace que le dernier segment ; si le cœur finit par signer
  * `/content`, l'URL est utilisée telle quelle.
  */
-function contentPathFor(id: string, signedUrl: string): string {
+function contentPathFor(
+  id: string,
+  signedUrl: string,
+  extra: Record<string, string> = {},
+): string {
   const parsed = new URL(signedUrl, window.location.origin);
   const token = parsed.searchParams.get("token");
   if (!token) {
@@ -267,7 +342,8 @@ function contentPathFor(id: string, signedUrl: string): string {
       "Lien de téléchargement sans jeton signé.",
     );
   }
-  const suffix = `?token=${encodeURIComponent(token)}`;
+  const params = new URLSearchParams({ token, ...extra });
+  const suffix = `?${params.toString()}`;
   if (parsed.pathname.endsWith("/content")) {
     return `${parsed.pathname}${suffix}`;
   }
@@ -278,13 +354,18 @@ function contentPathFor(id: string, signedUrl: string): string {
  * Récupère le texte complet du livrable via un lien signé à durée courte.
  * Ne fonctionne que pour un livrable `unlocked` (sinon 402 / 403).
  */
-export async function fetchDeliverableText(id: string): Promise<string> {
+export async function fetchDeliverableText(
+  id: string,
+  format: ContentFormat = "html",
+): Promise<string> {
   const link = await fetchDownloadLink(id);
-  const path = contentPathFor(id, link.url);
+  const path = contentPathFor(id, link.url, { format });
 
   let response: Response;
   try {
-    response = await fetch(path, { headers: { accept: "text/plain" } });
+    response = await fetch(path, {
+      headers: { accept: format === "html" ? "text/html" : "text/markdown" },
+    });
   } catch {
     throw new ApiError(
       0,
@@ -316,4 +397,13 @@ export async function fetchDeliverableText(id: string): Promise<string> {
   }
 
   return response.text();
+}
+
+/**
+ * URL signée (même origine, via le proxy Vite) du CV autonome avec sa barre
+ * « Imprimer / PDF ». Le jeton expire après quelques minutes.
+ */
+export async function signedViewerUrl(id: string): Promise<string> {
+  const link = await fetchDownloadLink(id);
+  return contentPathFor(id, link.url, { format: "html", toolbar: "1" });
 }
