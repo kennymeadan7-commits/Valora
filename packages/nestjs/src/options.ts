@@ -1,5 +1,6 @@
 import type {
   PaymentProvider,
+  PreviewPayLimits,
   PreviewPayOptions,
   Pricing,
   PreviewStrategy,
@@ -39,6 +40,11 @@ export interface PreviewPayModuleOptions {
   };
   /** Régénérations autorisées après un refus (2 par défaut, côté cœur). */
   maxRegenerations?: number;
+  /**
+   * Limites anti-abus du cœur, ex. `{ previewsPerOwnerPerDay: 5 }`. La limite
+   * s'applique aux créations qui portent un `ownerId` (429 au-delà).
+   */
+  limits?: PreviewPayLimits;
   /**
    * Si fourni, `POST /deliverables` exige l'en-tête `x-internal-key` égal à
    * cette valeur. Absent : la garde est désactivée (à réserver au
@@ -113,6 +119,7 @@ export function resolveOptions(
     ...(options.maxRegenerations !== undefined
       ? { maxRegenerations: options.maxRegenerations }
       : {}),
+    ...(options.limits ? { limits: options.limits } : {}),
     ...(options.now ? { now: options.now } : {}),
     ...(options.generateId ? { generateId: options.generateId } : {}),
   };

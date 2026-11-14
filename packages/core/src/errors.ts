@@ -49,3 +49,20 @@ export class MissingPriceError extends PreviewPayError {
     super(`Aucun prix configuré pour le type « ${type} »`, "MISSING_PRICE");
   }
 }
+
+/**
+ * Limite d'aperçus gratuits atteinte pour cet utilisateur sur la fenêtre
+ * glissante de 24 h. `retryAt` est une borne haute : au plus tard à cette
+ * date, un nouvel aperçu redevient possible (souvent plus tôt).
+ */
+export class PreviewLimitError extends PreviewPayError {
+  constructor(
+    readonly limit: number,
+    readonly retryAt: Date,
+  ) {
+    super(
+      `Limite de ${limit} aperçu${limit > 1 ? "s" : ""} gratuit${limit > 1 ? "s" : ""} par 24 h atteinte`,
+      "PREVIEW_LIMIT_REACHED",
+    );
+  }
+}

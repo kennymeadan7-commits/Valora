@@ -28,6 +28,14 @@ export class MemoryStorage implements Storage {
     return d ? structuredClone(d) : null;
   }
 
+  async countDeliverablesByOwner(ownerId: string, since: Date): Promise<number> {
+    let count = 0;
+    for (const d of this.deliverables.values()) {
+      if (d.ownerId === ownerId && d.createdAt.getTime() >= since.getTime()) count += 1;
+    }
+    return count;
+  }
+
   async getDeliverableByPayment(paymentId: string): Promise<Deliverable | null> {
     const id = this.payments.get(paymentId);
     return id ? this.getDeliverable(id) : null;

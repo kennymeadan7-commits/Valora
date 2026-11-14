@@ -35,10 +35,12 @@ export {
   InvalidSignatureError,
   InvalidTransitionError,
   PaymentRequiredError,
+  PreviewLimitError,
   PreviewPayError,
 } from "@previewpay/core";
 export type {
   PreviewPay,
+  PreviewPayLimits,
   PublicDeliverable,
   WebhookOutcome,
 } from "@previewpay/core";

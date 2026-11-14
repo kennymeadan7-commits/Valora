@@ -30,8 +30,12 @@ model Deliverable {
   paymentUrl       String?
   regenerations    Int
   maxRegenerations Int
+  /// Utilisateur final (identifiant opaque de l'intégrateur) — limites anti-abus.
+  ownerId          String?
   createdAt        DateTime @db.Timestamptz(3)
   updatedAt        DateTime @db.Timestamptz(3)
+
+  @@index([ownerId, createdAt])
 }
 
 /// Journal append-only : une entrée par transition acceptée (et par

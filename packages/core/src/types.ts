@@ -33,6 +33,11 @@ export interface Deliverable {
   paymentUrl: string | null;
   regenerations: number;
   maxRegenerations: number;
+  /**
+   * Utilisateur final à qui l'aperçu est destiné (identifiant opaque choisi
+   * par l'intégrateur). Sert aux limites anti-abus ; jamais exposé au client.
+   */
+  ownerId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -85,6 +90,11 @@ export interface Storage {
    * client. Aucune route publique ne doit exposer cette liste.
    */
   listDeliverables(): Promise<Deliverable[]>;
+  /**
+   * Nombre de livrables créés pour `ownerId` depuis `since` (inclus), tous
+   * états confondus. Sert à la limite d'aperçus gratuits par utilisateur.
+   */
+  countDeliverablesByOwner(ownerId: string, since: Date): Promise<number>;
   /** Retrouve un livrable par l'identifiant de paiement du fournisseur. */
   getDeliverableByPayment(paymentId: string): Promise<Deliverable | null>;
   /**

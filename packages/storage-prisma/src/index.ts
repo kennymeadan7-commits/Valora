@@ -60,6 +60,7 @@ function toDeliverable(row: DeliverableRow): Deliverable {
     paymentUrl: row.paymentUrl,
     regenerations: row.regenerations,
     maxRegenerations: row.maxRegenerations,
+    ownerId: row.ownerId ?? null,
     createdAt: asDate(row.createdAt),
     updatedAt: asDate(row.updatedAt),
   };
@@ -93,6 +94,7 @@ function deliverableData(
     paymentUrl: d.paymentUrl,
     regenerations: d.regenerations,
     maxRegenerations: d.maxRegenerations,
+    ownerId: d.ownerId ?? null,
     createdAt: asDate(d.createdAt),
     updatedAt: asDate(d.updatedAt),
   };
@@ -130,6 +132,13 @@ export class PrismaStorage implements Storage {
   async getDeliverable(id: string): Promise<Deliverable | null> {
     const row = await this.prisma.deliverable.findUnique({ where: { id } });
     return row ? toDeliverable(row) : null;
+  }
+
+  /** S'appuie sur l'index `(ownerId, createdAt)`. */
+  async countDeliverablesByOwner(ownerId: string, since: Date): Promise<number> {
+    return this.prisma.deliverable.count({
+      where: { ownerId, createdAt: { gte: since } },
+    });
   }
 
   async getDeliverableByPayment(paymentId: string): Promise<Deliverable | null> {

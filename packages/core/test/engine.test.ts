@@ -3,6 +3,7 @@ import {
   InvalidSignatureError,
   InvalidTransitionError,
   PaymentRequiredError,
+  PreviewLimitError,
   PreviewPay,
   verifyDownloadToken,
   type PaymentProvider,
@@ -266,5 +267,56 @@ describe("téléchargement", () => {
     expect(
       verifyDownloadToken(token2, SECRET, new Date(Date.now() + 120_000)),
     ).toBeNull();
+  });
+});
+
+describe("limite d'aperçus par utilisateur", () => {
+  function limited(perDay: number) {
+    let now = new Date("2026-11-14T08:00:00.000Z");
+    const storage = new MemoryStorage();
+    const preview = new TruncatePreview();
+    const engine = new PreviewPay({
+      storage,
+      provider: new MockPaymentProvider({ secret: "mock_secret" }),
+      preview,
+      pricing: PRICING,
+      download: { secret: SECRET, baseUrl: "https://api.test" },
+      limits: { previewsPerOwnerPerDay: perDay },
+      now: () => now,
+    });
+    return { engine, preview, storage, advance: (ms: number) => (now = new Date(now.getTime() + ms)) };
+  }
+
+  it("refuse au-delà de la limite sur 24 h glissantes, sans générer d'aperçu", async () => {
+    const { engine, preview, advance } = limited(2);
+    await engine.create({ type: "cv", content: FULL_CV, ownerId: "u1" });
+    advance(60_000);
+    await engine.create({ type: "cv", content: FULL_CV, ownerId: "u1" });
+
+    const refused = engine.create({ type: "cv", content: FULL_CV, ownerId: "u1" });
+    await expect(refused).rejects.toBeInstanceOf(PreviewLimitError);
+    await expect(refused).rejects.toMatchObject({ code: "PREVIEW_LIMIT_REACHED", limit: 2 });
+    expect(preview.calls).toBe(2);
+
+    // Un autre utilisateur, ou une création anonyme, ne sont pas concernés.
+    await engine.create({ type: "cv", content: FULL_CV, ownerId: "u2" });
+    await engine.create({ type: "cv", content: FULL_CV });
+
+    // 24 h après le premier aperçu, une place se libère.
+    advance(24 * 60 * 60 * 1000 - 60_000 + 1);
+    await expect(engine.create({ type: "cv", content: FULL_CV, ownerId: "u1" })).resolves.toMatchObject({
+      state: "previewed",
+    });
+  });
+
+  it("enregistre le propriétaire sans l'exposer au client", async () => {
+    const { engine, storage } = limited(5);
+    const created = await engine.create({ type: "cv", content: FULL_CV, ownerId: "  u1  " });
+    expect(created).not.toHaveProperty("ownerId");
+    expect((await storage.getDeliverable(created.id))?.ownerId).toBe("u1");
+  });
+
+  it("rejette une limite invalide à la construction", () => {
+    expect(() => limited(0)).toThrow(TypeError);
   });
 });

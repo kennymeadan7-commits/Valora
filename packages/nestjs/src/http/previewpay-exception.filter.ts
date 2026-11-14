@@ -6,6 +6,7 @@ import {
   InvalidSignatureError,
   InvalidTransitionError,
   PaymentRequiredError,
+  PreviewLimitError,
   PreviewPayError,
 } from "@previewpay/core";
 
@@ -13,12 +14,15 @@ import {
 interface HttpResponseLike {
   status(code: number): HttpResponseLike;
   json(body: unknown): unknown;
+  setHeader?(name: string, value: string): unknown;
 }
 
 export interface MappedError {
   statusCode: number;
   code: string;
   message: string;
+  /** Secondes avant de réessayer (en-tête `Retry-After`), pour un 429. */
+  retryAfterSeconds?: number;
 }
 
 /**
@@ -30,6 +34,7 @@ export interface MappedError {
  * | `InvalidTransitionError`, `ConflictError` | 409 |
  * | `PaymentRequiredError` | 402 |
  * | `InvalidSignatureError` | 400 |
+ * | `PreviewLimitError` | 429 (+ `Retry-After`) |
  * | toute autre erreur | 500 |
  *
  * `MissingPriceError` tombe donc dans le 500 : c'est un défaut de
@@ -68,6 +73,17 @@ export function mapPreviewPayError(exception: unknown): MappedError {
       message: exception.message,
     };
   }
+  if (exception instanceof PreviewLimitError) {
+    return {
+      statusCode: 429,
+      code: exception.code,
+      message: exception.message,
+      retryAfterSeconds: Math.max(
+        1,
+        Math.ceil((exception.retryAt.getTime() - Date.now()) / 1000),
+      ),
+    };
+  }
   if (exception instanceof PreviewPayError) {
     // Erreur du cœur non listée : défaut serveur, message en français conservé.
     return {
@@ -104,6 +120,9 @@ export class PreviewPayExceptionFilter implements ExceptionFilter {
     }
 
     const mapped = mapPreviewPayError(exception);
+    if (mapped.retryAfterSeconds !== undefined) {
+      response.setHeader?.("retry-after", String(mapped.retryAfterSeconds));
+    }
     response.status(mapped.statusCode).json({
       statusCode: mapped.statusCode,
       code: mapped.code,

@@ -18,6 +18,7 @@ function deliverable(overrides: Partial<Deliverable> = {}): Deliverable {
     paymentUrl: null,
     regenerations: 0,
     maxRegenerations: 1,
+    ownerId: null,
     createdAt: T0,
     updatedAt: T0,
     ...overrides,

@@ -100,6 +100,35 @@ describe("POST /deliverables", () => {
   });
 });
 
+describe("limite d'aperçus par utilisateur", () => {
+  it("renvoie 429 avec Retry-After au-delà de la limite, sans gêner les autres", async () => {
+    const app = await boot({ limits: { previewsPerOwnerPerDay: 2 } });
+    const post = (body: Record<string, unknown>) =>
+      app.http().post("/deliverables").set("x-internal-key", INTERNAL_KEY).send(body);
+
+    await post({ type: "cv", content: FULL_CV, ownerId: "user_1" }).expect(201);
+    await post({ type: "cv", content: FULL_CV, ownerId: "user_1" }).expect(201);
+    const refused = await post({ type: "cv", content: FULL_CV, ownerId: "user_1" }).expect(429);
+
+    expect(refused.body.code).toBe("PREVIEW_LIMIT_REACHED");
+    expect(Number(refused.headers["retry-after"])).toBeGreaterThan(0);
+    expect(refused.body).not.toHaveProperty("content");
+
+    await post({ type: "cv", content: FULL_CV, ownerId: "user_2" }).expect(201);
+    await post({ type: "cv", content: FULL_CV }).expect(201);
+  });
+
+  it("rejette un ownerId invalide en 400", async () => {
+    const app = await boot();
+    await app
+      .http()
+      .post("/deliverables")
+      .set("x-internal-key", INTERNAL_KEY)
+      .send({ type: "cv", content: FULL_CV, ownerId: 42 })
+      .expect(400);
+  });
+});
+
 describe("GET /deliverables/:id", () => {
   it("renvoie statut, prix et aperçu — jamais le contenu complet", async () => {
     const app = await boot();

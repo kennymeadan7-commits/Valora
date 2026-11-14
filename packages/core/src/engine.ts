@@ -6,6 +6,7 @@ import {
   InvalidTransitionError,
   MissingPriceError,
   PaymentRequiredError,
+  PreviewLimitError,
 } from "./errors.js";
 import { canTransition } from "./machine.js";
 import {
@@ -33,15 +34,30 @@ export interface PreviewPayOptions {
   pricing: Pricing;
   maxRegenerations?: number;
   download: { secret: string; baseUrl: string; ttlSeconds?: number };
+  /** Limites anti-abus (désactivées par défaut). */
+  limits?: PreviewPayLimits;
   now?: () => Date;
   generateId?: () => string;
+}
+
+export interface PreviewPayLimits {
+  /**
+   * Nombre maximal de livrables (donc d'aperçus gratuits) par `ownerId` sur
+   * une fenêtre glissante de 24 h. Ne s'applique qu'aux créations qui
+   * fournissent un `ownerId`.
+   */
+  previewsPerOwnerPerDay?: number;
 }
 
 export interface CreateDeliverableInput {
   type: string;
   content: unknown;
   maxRegenerations?: number;
+  /** Utilisateur final (identifiant opaque) — active la limite d'aperçus. */
+  ownerId?: string;
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 export interface PayInput {
   phone: string;
@@ -76,6 +92,7 @@ export class PreviewPay {
   private readonly ttlSeconds: number;
   private readonly now: () => Date;
   private readonly generateId: () => string;
+  private readonly previewsPerOwnerPerDay: number | null;
 
   constructor(opts: PreviewPayOptions) {
     this.storage = opts.storage;
@@ -88,6 +105,12 @@ export class PreviewPay {
     this.ttlSeconds = opts.download.ttlSeconds ?? DEFAULT_TTL_SECONDS;
     this.now = opts.now ?? (() => new Date());
     this.generateId = opts.generateId ?? (() => randomUUID());
+
+    const perDay = opts.limits?.previewsPerOwnerPerDay;
+    if (perDay !== undefined && (!Number.isInteger(perDay) || perDay < 1)) {
+      throw new TypeError("limits.previewsPerOwnerPerDay doit être un entier ≥ 1");
+    }
+    this.previewsPerOwnerPerDay = perDay ?? null;
   }
 
   // ---------------------------------------------------------------- création
@@ -102,6 +125,22 @@ export class PreviewPay {
     }
 
     const now = this.now();
+    const ownerId = input.ownerId?.trim() || null;
+
+    // Contrôlé *avant* la génération de l'aperçu : un aperçu refusé ne coûte
+    // rien. Compter puis créer n'est pas atomique ; deux requêtes simultanées
+    // peuvent dépasser la limite d'une unité, ce qui reste acceptable ici.
+    if (ownerId !== null && this.previewsPerOwnerPerDay !== null) {
+      const since = new Date(now.getTime() - DAY_MS);
+      const used = await this.storage.countDeliverablesByOwner(ownerId, since);
+      if (used >= this.previewsPerOwnerPerDay) {
+        throw new PreviewLimitError(
+          this.previewsPerOwnerPerDay,
+          new Date(now.getTime() + DAY_MS),
+        );
+      }
+    }
+
     const preview = await this.preview.makePreview(input.content, {
       type: input.type,
     });
@@ -118,6 +157,7 @@ export class PreviewPay {
       paymentUrl: null,
       regenerations: 0,
       maxRegenerations: input.maxRegenerations ?? this.maxRegenerations,
+      ownerId,
       createdAt: now,
       updatedAt: now,
     };

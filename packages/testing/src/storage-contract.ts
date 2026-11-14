@@ -37,6 +37,7 @@ export function makeDeliverable(
     paymentUrl: null,
     regenerations: 0,
     maxRegenerations: 1,
+    ownerId: null,
     createdAt: AT,
     updatedAt: AT,
     ...overrides,
@@ -285,6 +286,30 @@ export function describeStorageContract({
       expect(
         await storage.recordEvent({ ...event, payload: { ok: false } }),
       ).toBe(false);
+    });
+
+    it("compte les livrables d'un propriétaire depuis une date (incluse)", async () => {
+      const day = 24 * 60 * 60 * 1000;
+      await storage.saveDeliverable(
+        makeDeliverable({ id: "dlv_a1", paymentId: null, ownerId: "user_a", createdAt: new Date(AT.getTime() - 2 * day) }),
+      );
+      await storage.saveDeliverable(
+        makeDeliverable({ id: "dlv_a2", paymentId: null, ownerId: "user_a", createdAt: AT }),
+      );
+      await storage.saveDeliverable(
+        makeDeliverable({ id: "dlv_a3", paymentId: null, ownerId: "user_a", state: "rejected", createdAt: new Date(AT.getTime() + 1000) }),
+      );
+      await storage.saveDeliverable(
+        makeDeliverable({ id: "dlv_b1", paymentId: null, ownerId: "user_b", createdAt: AT }),
+      );
+      await storage.saveDeliverable(makeDeliverable({ id: "dlv_anon", paymentId: null, createdAt: AT }));
+
+      expect(await storage.countDeliverablesByOwner("user_a", AT)).toBe(2);
+      expect(await storage.countDeliverablesByOwner("user_a", new Date(AT.getTime() - 3 * day))).toBe(3);
+      expect(await storage.countDeliverablesByOwner("user_b", AT)).toBe(1);
+      expect(await storage.countDeliverablesByOwner("inconnu", AT)).toBe(0);
+      expect((await storage.getDeliverable("dlv_a2"))?.ownerId).toBe("user_a");
+      expect((await storage.getDeliverable("dlv_anon"))?.ownerId).toBeNull();
     });
   });
 }

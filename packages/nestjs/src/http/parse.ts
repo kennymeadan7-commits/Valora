@@ -50,10 +50,21 @@ export function parseCreateInput(body: unknown): CreateDeliverableInput {
     }
   }
 
+  const ownerId = obj["ownerId"];
+  if (
+    ownerId !== undefined &&
+    (typeof ownerId !== "string" || ownerId.trim() === "" || ownerId.length > 200)
+  ) {
+    throw new BadRequestException(
+      "Le champ « ownerId » doit être une chaîne non vide (200 caractères max)",
+    );
+  }
+
   return {
     type,
     content: obj["content"],
     ...(maxRegenerations !== undefined ? { maxRegenerations } : {}),
+    ...(typeof ownerId === "string" ? { ownerId: ownerId.trim() } : {}),
   };
 }
 
