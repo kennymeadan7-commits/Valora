@@ -1,3 +1,5 @@
+export {};
+
 /**
  * Preuve de bout en bout contre la sandbox FedaPay.
  *
