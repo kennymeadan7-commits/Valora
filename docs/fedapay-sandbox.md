@@ -148,12 +148,29 @@ même les numéros documentés comme réussis :
 | API directe | 1008 | 64000001 | `declined` |
 | API directe | 5008 | 64000001 | `declined` |
 
-Indices de provisionnement incomplet côté FedaPay : le tableau de bord affiche
-`Compte: Account.Null`, `GET /v1/whitelisted_ips` renvoie 404, et la balance ne
-montre **aucune** transaction approuvée depuis l'ouverture du compte.
+### Ce qui a été vérifié dans le tableau de bord (et qui n'est PAS le problème)
 
-**Action requise (utilisateur)** : demander à FedaPay l'activation du compte
-sandbox, ou fournir un compte sandbox où `momo_test` approuve réellement.
+| Vérification | Résultat |
+| --- | --- |
+| Statut du compte (`/get-started`) | « Votre compte est déjà activé » |
+| Canaux de paiement (`/settings/preferences?tab=payment_channels`) | `Momo Test`, Moov CI, Wave CI, Orange CI : **tous cochés** |
+| Type de compte actif (`/settings/account`) | `account.null` — champ en lecture seule, non modifiable |
+| Comptes Mobiles (`/settings/mobile-accounts`) | **aucun compte** enregistré (« Ajouter un compte mobile ») |
+| Remplissage du compte mobile | le formulaire exige un numéro valide **puis un code par SMS** |
+
+Il n'y a donc **aucun interrupteur d'activation** à basculer : la sandbox est
+bien active, c'est le simulateur `momo_test` qui refuse les paiements.
+
+Deux hypothèses restantes, toutes deux hors de portée du code :
+
+1. **Compte mobile de règlement manquant** — impossible à enregistrer sans
+   recevoir un SMS sur un vrai numéro (action utilisateur).
+2. **Provisionnement du compte** (`account.null` en lecture seule, 404 sur
+   `/v1/whitelisted_ips`) — relève du support FedaPay.
+
+**Action requise (utilisateur)** : enregistrer un compte mobile avec son propre
+numéro (réception du SMS), ou demander au support FedaPay pourquoi
+`account.null` et pourquoi `momo_test` décline les numéros de test documentés.
 Dès que c'est le cas, la preuve est immédiate :
 
 ```sh
