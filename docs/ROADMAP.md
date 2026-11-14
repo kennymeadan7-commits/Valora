@@ -30,9 +30,10 @@ contenu complet n'apparaît dans aucune réponse avant `unlocked`.
 - [x] `@previewpay/provider-fedapay` : transactions, jeton, direct MTN/Moov,
       vérification de signature sur corps brut, anti-rejeu
 - [x] Schéma réel du webhook relevé et documenté
-- [ ] Rebrancher l'endpoint sur le tunnel HTTPS local (le code est prêt)
-- [ ] Rejouer un webhook depuis le tableau de bord (test du doublon)
-- [ ] Paiement direct `mtn_benin` / `moov_benin` de bout en bout
+- [x] Rebrancher l'endpoint sur le tunnel HTTPS local — `cloudflared` + endpoint 5218 repointé
+- [x] Webhooks réels reçus par le tunnel, signature vérifiée, idempotence en base
+- [ ] **Bloqué** : la sandbox FedaPay décline tous les paiements `momo_test`
+      (compte `acc_2990265463`, voir `docs/fedapay-sandbox.md`) → déblocage réel non prouvable
 
 ## Jalon 4 — interface et démo
 

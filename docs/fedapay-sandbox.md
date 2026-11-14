@@ -10,7 +10,7 @@ Tout ce qui suit a été observé, pas déduit de la documentation.
 | Compte sandbox | `acc_2990265463` |
 | Clés API | générées le 14/11 12:10 — scopes **Transactions** uniquement |
 | Endpoint webhook | id `5218`, **tous** les événements, `disable_on_error` **décoché** |
-| URL de l'endpoint | `https://webhook.site/99b7cc13-…` (temporaire, voir plus bas) |
+| URL de l'endpoint | `https://<tunnel>/webhooks/fedapay` (tunnel cloudflared, voir plus bas) |
 | Secret webhook | `wh_sandbox_…` → `FEDAPAY_WEBHOOK_SECRET` dans `.env` (hors git) |
 
 Les clés et le secret vivent uniquement dans `.env` (ignoré par git) ; ils ne
@@ -84,20 +84,82 @@ d'idempotence utilisée par le SDK.
 Aucun événement documenté pour `expired` : la détection passe par
 `getPaymentStatus`, ce que fait déjà `PreviewPay.syncPayment`.
 
-## À faire pour recevoir les webhooks en local
+## Tunnel HTTPS et endpoint réellement branché
 
-L'URL de l'endpoint pointe aujourd'hui vers **webhook.site**, ce qui a permis de
-relever le schéma sans serveur public. Pour brancher le SDK :
+```sh
+cloudflared tunnel --url http://localhost:3000 --no-autoupdate
+# → https://<adjectif>-<mot>-<mot>.trycloudflare.com
+```
 
-1. démarrer un tunnel HTTPS (`cloudflared tunnel --url http://localhost:3000` ou
-   `ngrok http 3000`) ;
-2. dans **Webhooks → endpoint 5218 → Modifier les détails**, remplacer l'URL par
-   `https://<tunnel>/webhooks/fedapay` ;
-3. garder `Désactiver la vérification SSL` **décoché** (TLS vérifié) et
-   `Désactiver le webhook lorsque l'application génère des erreurs` **décoché**
-   (sinon FedaPay coupe l'endpoint après 10 erreurs) ;
-4. récupérer le nouveau secret si l'endpoint est recréé, et mettre à jour
-   `FEDAPAY_WEBHOOK_SECRET`.
+L'endpoint **5218** a été repointé vers
+`https://label-none-elect-dis.trycloudflare.com/webhooks/fedapay`
+(Webhooks → 5218 → Modifier les détails). Le secret `wh_sandbox_…` n'a **pas**
+changé : les événements réels suivants ont été acceptés par la vérification de
+signature, ce qui le prouve.
+
+⚠️ Un quick tunnel cloudflared est éphémère : l'URL change à chaque
+redémarrage. Il faut alors re-pointer l'endpoint et redémarrer l'API.
+
+Réglages de l'endpoint : `Désactiver la vérification SSL` **décoché** (TLS
+vérifié), `Désactiver le webhook lorsque l'application génère des erreurs`
+**décoché** (sinon FedaPay coupe l'endpoint après 10 erreurs).
+
+### Chaîne réelle vérifiée
+
+Événements livrés par FedaPay par le tunnel, horodatés en base :
+
+```
+             id              |         receivedAt
+ transaction.created:543515  | 2026-11-14 11:57:12.829+00
+ transaction.declined:543515 | 2026-11-14 11:57:14.705+00
+ transaction.created:543513  | 2026-11-14 11:57:10.047+00
+ transaction.declined:543513 | 2026-11-14 11:57:11.957+00
+ transaction.created:543511  | 2026-11-14 11:56:08.188+00
+ transaction.declined:543511  | 2026-11-14 11:56:10.908+00
+```
+
+Transition appliquée par le SDK (`storage-prisma`) :
+
+```
+        from        |        to
+--------------------+------------------
+ draft              | previewed
+ previewed          | payment_pending
+ payment_pending    | previewed      ← webhook:transaction.declined
+```
+
+**Anti-falsification** : un webhook `transaction.approved` signé avec le vrai
+secret de l'endpoint est accepté (HTTP 200) mais **ne débloque pas** le
+livrable, parce que le SDK revérifie le statut par appel API et obtient
+`declined`. C'est exactement la règle « le webhook seul ne suffit pas ».
+
+## Bloquant actuel : la sandbox refuse tous les paiements
+
+Le compte sandbox `acc_2990265463` décline **tous** les paiements `momo_test`,
+même les numéros documentés comme réussis :
+
+| Tentative | Montant | Numéro | Résultat |
+| --- | --- | --- | --- |
+| page de paiement | 200 | +22990000000 | `declined` |
+| page de paiement | 200 | 64000001 | `declined` |
+| API directe `/v1/momo_test` | 208 | 64000001 | `declined` |
+| API directe | 208 | 66000001 | `declined` |
+| API directe | 208 | +22964000001 | `declined` |
+| API directe | 1008 | 64000001 | `declined` |
+| API directe | 5008 | 64000001 | `declined` |
+
+Indices de provisionnement incomplet côté FedaPay : le tableau de bord affiche
+`Compte: Account.Null`, `GET /v1/whitelisted_ips` renvoie 404, et la balance ne
+montre **aucune** transaction approuvée depuis l'ouverture du compte.
+
+**Action requise (utilisateur)** : demander à FedaPay l'activation du compte
+sandbox, ou fournir un compte sandbox où `momo_test` approuve réellement.
+Dès que c'est le cas, la preuve est immédiate :
+
+```sh
+curl -s -X POST http://localhost:3000/demo/cv   -H 'content-type: application/json'   -d '{"fullName":"Preuve","headline":"Approbation sandbox"}'
+# puis /pay avec le numéro 64000001, puis payer sur la page FedaPay
+```
 
 ## Vérification exécutée
 
