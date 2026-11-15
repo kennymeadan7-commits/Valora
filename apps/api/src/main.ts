@@ -18,22 +18,27 @@ async function bootstrap(): Promise<void> {
     origin: (process.env["WEB_ORIGIN"] ?? "http://localhost:5173").split(","),
   });
 
-  // Déploiement « un seul processus » : si le build du front est présent à côté
-  // de l'API, il est servi en même origine (aucun CORS, aucune URL d'API à
-  // configurer). En développement, Vite sert le front et cette branche est
-  // inactive.
+  // Déploiement « un seul processus » :
+  //   /        → page produit (apps/landing)
+  //   /app/    → démonstration React (apps/web/dist)
+  // En développement, Vite sert le front et ces branches sont inactives.
+  const landingDir = fileURLToPath(new URL("../../landing/", import.meta.url));
   const webDist = fileURLToPath(new URL("../../web/dist/", import.meta.url));
-  if (existsSync(webDist)) {
-    const index = fileURLToPath(new URL("../../web/dist/index.html", import.meta.url));
-    // Assets statiques servis par Nest ; l'index est servi par le repli SPA.
-    app.useStaticAssets(webDist, { index: false });
+  const server = app.getHttpAdapter().getInstance();
 
-    const server = app.getHttpAdapter().getInstance();
-    server.get(
-      /^\/(?!deliverables|demo|webhooks|api\/).*/,
-      (_req: unknown, res: { sendFile: (path: string) => unknown }) => res.sendFile(index),
+  if (existsSync(webDist)) {
+    app.useStaticAssets(webDist, { prefix: "/app/", index: false });
+    const appIndex = fileURLToPath(new URL("../../web/dist/index.html", import.meta.url));
+    // Repli SPA de la démo : /app/... renvoie son index.
+    server.get(/^\/app(\/.*)?$/, (_req: unknown, res: { sendFile: (p: string) => unknown }) =>
+      res.sendFile(appIndex),
     );
-    console.log(`Front servi depuis ${webDist}`);
+    console.log(`Démo servie depuis ${webDist} (montée sur /app/)`);
+  }
+
+  if (existsSync(landingDir)) {
+    app.useStaticAssets(landingDir, { index: "index.html" });
+    console.log(`Page produit servie depuis ${landingDir}`);
   }
 
   const port = Number(process.env["PORT"] ?? 3000);

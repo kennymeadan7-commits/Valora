@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PreviewPay — on voit d'abord, on paie le livrable</title>
+    <meta
+      name="description"
+      content="PreviewPay : la brique de paiement au résultat pour les produits d'IA. Aperçu gratuit, paiement Mobile Money de quelques centaines de francs CFA, livrable débloqué."
+    />
+    <meta property="og:title" content="PreviewPay — on voit d'abord, on paie le livrable" />
+    <meta
+      property="og:description"
+      content="Aperçu gratuit → paiement Mobile Money → livrable débloqué. Le paiement à l'unité pour les produits d'IA en Afrique de l'Ouest."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&family=Inter:wght@400;500;600;700&display=swap"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f766e'/%3E%3Cpath d='M10 9h7a6 6 0 0 1 0 12h-3v4h-4z' fill='%23fff'/%3E%3C/svg%3E"
+    />
+    <style>
+      :root {
+        --bg: #f5f3ee;
+        --surface: #ffffff;
+        --surface-2: #faf9f6;
+        --ink: #15181d;
+        --ink-2: #3c434d;
+        --muted: #6b7280;
+        --line: #e4e1d9;
+        --accent: #0f766e;
+        --accent-ink: #ffffff;
+        --accent-soft: #e3f2ef;
+        --gold: #f2b134;
+        --radius: 14px;
+        --shadow: 0 1px 2px rgba(20, 24, 29, 0.04), 0 8px 24px rgba(20, 24, 29, 0.06);
+        --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        --serif: "Fraunces", Georgia, "Times New Roman", serif;
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #111417;
+          --surface: #191d21;
+          --surface-2: #15191c;
+          --ink: #eef0f2;
+          --ink-2: #c3c8ce;
+          --muted: #8d949c;
+          --line: #2a3036;
+          --accent: #2bb3a3;
+          --accent-ink: #06201d;
+          --accent-soft: #163330;
+          --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
+          color-scheme: dark;
+        }
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: var(--font);
+        font-size: 16px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      a { color: var(--accent); }
+      .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+      h1, h2, h3 { line-height: 1.2; margin: 0; }
+      h1, h2 { font-family: var(--serif); font-weight: 600; letter-spacing: -0.01em; }
+      h1 { font-size: clamp(2.1rem, 5.2vw, 3.5rem); }
+      h2 { font-size: clamp(1.6rem, 3.4vw, 2.3rem); }
+      h3 { font-size: 1.05rem; font-weight: 600; }
+      p { margin: 0; }
+
+      /* barre du haut */
+      .top { border-bottom: 1px solid var(--line); background: var(--surface); }
+      .top .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; gap: 16px; }
+      .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--ink); text-decoration: none; }
+      .brand-mark { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); display: grid; place-items: center; color: var(--accent-ink); font-family: var(--serif); }
+      .top nav { display: flex; gap: 22px; align-items: center; }
+      .top nav a { color: var(--ink-2); text-decoration: none; font-size: 0.94rem; }
+      .top nav a:hover { color: var(--ink); }
+      @media (max-width: 720px) { .top nav .hide-sm { display: none; } }
+
+      .btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        padding: 12px 20px; border-radius: 10px; font-weight: 600; text-decoration: none;
+        border: 1px solid transparent; font-size: 0.98rem; white-space: nowrap;
+      }
+      .btn-primary { background: var(--accent); color: var(--accent-ink); }
+      .btn-primary:hover { filter: brightness(1.08); }
+      .btn-ghost { background: var(--surface); color: var(--ink); border-color: var(--line); }
+      .btn-ghost:hover { border-color: var(--muted); }
+      .btn-sm { padding: 8px 14px; font-size: 0.9rem; }
+
+      /* hero */
+      .hero { padding: 72px 0 56px; }
+      .hero .wrap { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center; }
+      @media (max-width: 880px) { .hero .wrap { grid-template-columns: 1fr; } .hero { padding-top: 44px; } }
+      .eyebrow { display: inline-block; font-size: 0.82rem; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 4px 10px; border-radius: 999px; margin-bottom: 18px; }
+      .lede { font-size: 1.15rem; color: var(--ink-2); margin-top: 18px; max-width: 34em; }
+      .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+      .flow { margin-top: 22px; font-size: 0.92rem; color: var(--muted); }
+      .flow b { color: var(--ink-2); font-weight: 600; }
+
+      /* maquette du paywall */
+      .mock { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; }
+      .doc { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 18px; position: relative; overflow: hidden; }
+      .doc .name { font-family: var(--serif); font-size: 1.3rem; }
+      .doc .role { color: var(--accent); font-size: 0.9rem; font-weight: 600; margin-bottom: 12px; }
+      .bar { height: 9px; border-radius: 5px; background: var(--line); margin: 8px 0; }
+      .bar.blur { filter: blur(2px); opacity: 0.8; }
+      .doc .veil { position: absolute; left: 0; right: 0; bottom: 0; height: 58%; background: linear-gradient(to bottom, transparent, var(--surface-2) 70%); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 14px; font-size: 0.82rem; color: var(--muted); }
+      .pay { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+      .price { font-size: 1.5rem; font-weight: 700; }
+      .price small { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+      .ops { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+      .op { font-size: 0.78rem; border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; color: var(--ink-2); }
+
+      section { padding: 64px 0; }
+      .section-head { max-width: 42em; margin-bottom: 32px; }
+      .section-head p { color: var(--ink-2); margin-top: 12px; font-size: 1.05rem; }
+      .alt { background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+
+      .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+      .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+      @media (max-width: 880px) { .grid3, .grid4 { grid-template-columns: 1fr 1fr; } }
+      @media (max-width: 560px) { .grid3, .grid4 { grid-template-columns: 1fr; } }
+      .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
+      .alt .card { background: var(--surface-2); }
+      .card p { color: var(--ink-2); margin-top: 8px; font-size: 0.96rem; }
+      .num { width: 30px; height: 30px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-weight: 700; font-size: 0.9rem; margin-bottom: 14px; }
+      .stat { font-family: var(--serif); font-size: 1.9rem; color: var(--accent); }
+
+      table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+      .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+      th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+      th { font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; background: var(--surface-2); }
+      tr:last-child td { border-bottom: 0; }
+      td:first-child { font-weight: 600; }
+      td { color: var(--ink-2); }
+
+      pre { margin: 0; background: #12161a; color: #dbe3ea; padding: 18px; border-radius: 10px; overflow-x: auto; font-size: 0.86rem; line-height: 1.55; }
+      pre .c { color: #7f8c97; }
+      pre .k { color: #7dd3c8; }
+      .two { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+      @media (max-width: 880px) { .two { grid-template-columns: 1fr; } }
+      ul.check { list-style: none; padding: 0; margin: 16px 0 0; }
+      ul.check li { padding-left: 28px; position: relative; margin: 10px 0; color: var(--ink-2); }
+      ul.check li::before { content: "✓"; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+
+      .final { text-align: center; }
+      .final p { color: var(--ink-2); margin: 14px auto 0; max-width: 36em; }
+      .final .cta { justify-content: center; }
+      footer { border-top: 1px solid var(--line); padding: 28px 0; color: var(--muted); font-size: 0.9rem; }
+      footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+      footer a { color: var(--ink-2); }
+    </style>
+  </head>
+  <body>
+    <header class="top">
+      <div class="wrap">
+        <a class="brand" href="/"><span class="brand-mark">P</span>PreviewPay</a>
+        <nav>
+          <a class="hide-sm" href="#probleme">Le problème</a>
+          <a class="hide-sm" href="#solution">La solution</a>
+          <a class="hide-sm" href="#produits">Cas d'usage</a>
+          <a class="btn btn-primary btn-sm" href="/app/">Essayer la démo</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="wrap">
+          <div>
+            <span class="eyebrow">Paiement au résultat pour les produits d'IA</span>
+            <h1>Vos clients voient le résultat. Ils paient seulement s'ils sont satisfaits.</h1>
+            <p class="lede">
+              PreviewPay s'intègre à votre application d'IA : vos clients découvrent un aperçu
+              de ce que l'IA a produit pour eux, puis le débloquent en <b>Mobile Money</b>, pour
+              quelques centaines de francs CFA. Pas d'abonnement, pas de carte bancaire.
+            </p>
+            <div class="cta">
+              <a class="btn btn-primary" href="/app/">Essayer la démo Valora CV →</a>
+              <a class="btn btn-ghost" href="https://github.com/kennymeadan7-commits/Valora">Voir le code (MIT)</a>
+            </div>
+            <p class="flow"><b>Aperçu gratuit</b> → <b>paiement Mobile Money</b> → <b>livrable débloqué</b></p>
+          </div>
+
+          <div class="mock" aria-label="Exemple d'écran d'aperçu avant paiement">
+            <div class="doc">
+              <div class="name">Aïcha K.</div>
+              <div class="role">Chargée de communication digitale</div>
+              <div class="bar" style="width: 92%"></div>
+              <div class="bar" style="width: 78%"></div>
+              <div class="bar blur" style="width: 86%"></div>
+              <div class="bar blur" style="width: 64%"></div>
+              <div class="bar blur" style="width: 81%"></div>
+              <div class="bar blur" style="width: 70%"></div>
+              <div class="veil">Détails masqués jusqu'au paiement</div>
+            </div>
+            <div class="pay">
+              <div class="price">200 F <small>CFA · une seule fois</small></div>
+              <a class="btn btn-primary btn-sm" href="/app/">Débloquer mon CV</a>
+            </div>
+            <div class="ops">
+              <span class="op">MTN Mobile Money</span>
+              <span class="op">Moov Money</span>
+              <span class="op">Bénin · Togo · Côte d'Ivoire</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="probleme" class="alt">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>Le problème : l'IA se vend mal à ceux qui paient en Mobile Money</h2>
+            <p>
+              Presque tous les outils d'IA se vendent au même modèle : un abonnement mensuel,
+              payé d'avance, en dollars, par carte bancaire. En Afrique de l'Ouest, ce modèle
+              bloque l'achat avant même le premier essai.
+            </p>
+          </div>
+          <div class="grid3">
+            <div class="card">
+              <h3>Payer avant de savoir</h3>
+              <p>Le client doit s'engager sans avoir vu si le résultat sera à la hauteur. Beaucoup renoncent.</p>
+            </div>
+            <div class="card">
+              <h3>Pas de carte internationale</h3>
+              <p>Tout le monde a un compte Mobile Money, très peu ont une carte qui passe sur les plateformes étrangères.</p>
+            </div>
+            <div class="card">
+              <h3>Un forfait pour un besoin ponctuel</h3>
+              <p>On a besoin d'un CV, d'un logo, d'une présentation, une fois. Un abonnement mensuel n'a pas de sens.</p>
+            </div>
+          </div>
+          <p style="margin-top: 24px; color: var(--ink-2)">
+            Résultat : des visiteurs intéressés qui repartent sans payer, et des produits d'IA de
+            qualité qui ne trouvent pas leur marché.
+          </p>
+        </div>
+      </section>
+
+      <section id="solution">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>La solution : on voit d'abord, on paie le livrable, pas le mois</h2>
+            <p>PreviewPay inverse la logique d'achat, sans changer le produit d'IA de l'éditeur.</p>
+          </div>
+          <div class="grid4">
+            <div class="card">
+              <div class="num">1</div>
+              <h3>L'IA produit le livrable</h3>
+              <p>Il reste sur le serveur de l'éditeur, en entier.</p>
+            </div>
+            <div class="card">
+              <div class="num">2</div>
+              <h3>Le client voit un aperçu</h3>
+              <p>Assez pour juger la qualité, pas assez pour s'en servir sans payer.</p>
+            </div>
+            <div class="card">
+              <div class="num">3</div>
+              <h3>Il valide et paie</h3>
+              <p>En Mobile Money, un petit montant fixé pour ce livrable précis.</p>
+            </div>
+            <div class="card">
+              <div class="num">4</div>
+              <h3>Le livrable se débloque</h3>
+              <p>Téléchargement immédiat. Pas convaincu ? Nouvelle version ou arrêt, sans frais.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="produits" class="alt">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>Pour tout produit d'IA qui fabrique un résultat montrable</h2>
+            <p>
+              Premier cas d'usage visé : les plateformes d'agents IA qui produisent des
+              livrables à la demande, où chaque résultat devient payable à l'unité.
+            </p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Produit</th><th>Aperçu gratuit</th><th>Débloqué après paiement</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>CV et lettres de motivation</td><td>La mise en page et le début du contenu</td><td>Le document complet en PDF</td></tr>
+                <tr><td>Présentations et pitch decks</td><td>Les premières diapositives</td><td>La présentation entière, modifiable</td></tr>
+                <tr><td>Logos et identité visuelle</td><td>Propositions basse résolution, filigranées</td><td>Les fichiers en haute définition</td></tr>
+                <tr><td>Business plans</td><td>Le sommaire et la synthèse</td><td>Le dossier détaillé avec chiffres</td></tr>
+                <tr><td>Traduction et transcription</td><td>Les premiers paragraphes</td><td>Le document ou les sous-titres complets</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="wrap two">
+          <div>
+            <h2>Une brique que les développeurs branchent en une journée</h2>
+            <p style="color: var(--ink-2); margin-top: 12px">
+              PreviewPay est un kit de développement open source. Il gère l'aperçu, le paiement
+              Mobile Money, la vérification du paiement et le téléchargement sécurisé.
+            </p>
+            <ul class="check">
+              <li>Le livrable complet ne quitte jamais le serveur avant paiement : l'aperçu est fabriqué côté serveur.</li>
+              <li>Chaque paiement est revérifié auprès de l'opérateur avant le déblocage.</li>
+              <li>Prix fixé par l'éditeur, en francs CFA, figé à la création.</li>
+              <li>Nouvelles versions limitées pour maîtriser les coûts d'IA.</li>
+              <li>Taux de validation, taux de refus et marge par livrable mesurés.</li>
+            </ul>
+          </div>
+          <pre><span class="c">// Serveur : l'IA vient de produire un CV.</span>
+<span class="k">const</span> livrable = <span class="k">await</span> previewPay.create({
+  type: <span class="k">"cv"</span>,
+  content: cvGenere,
+  ownerId: client.id,
+});
+
+<span class="c">// Interface : aperçu, prix, Mobile Money,</span>
+<span class="c">// téléchargement.</span>
+&lt;PreviewPaywall deliverableId={livrable.id} /&gt;</pre>
+        </div>
+      </section>
+
+      <section class="alt">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>Où en est le projet</h2>
+            <p>Version bêta 0.1, développée au Bénin.</p>
+          </div>
+          <div class="grid3">
+            <div class="card">
+              <div class="stat">Bout en bout</div>
+              <p>Parcours aperçu → paiement → déblocage testé, avec intégrations NestJS, Express et un composant React.</p>
+            </div>
+            <div class="card">
+              <div class="stat">Valora CV</div>
+              <p>Application de démonstration complète : import du CV en PDF, aperçu mis en page, paiement de 200 F CFA, téléchargement.</p>
+            </div>
+            <div class="card">
+              <div class="stat">FedaPay</div>
+              <p>Intégration Mobile Money MTN et Moov (Bénin, Togo, Côte d'Ivoire) ; validation en paiement réel en cours.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="final">
+        <div class="wrap">
+          <h2>Essayez le parcours en deux minutes</h2>
+          <p>
+            Importez un CV ou remplissez le formulaire, regardez l'aperçu, payez avec le
+            simulateur Mobile Money et téléchargez le PDF complet. Aucun vrai paiement n'est
+            effectué dans la démo.
+          </p>
+          <div class="cta">
+            <a class="btn btn-primary" href="/app/">Lancer la démo →</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>PreviewPay · open source, licence MIT</span>
+        <a href="https://github.com/kennymeadan7-commits/Valora">GitHub</a>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -50,3 +50,6 @@ Thumbs.db
 
 # Configuration locale d outillage
 .claude/
+
+# Sortie de build Vercel
+.vercel/

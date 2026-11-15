@@ -8,6 +8,9 @@ import { defineConfig } from "vite";
  * les préfixes `/deliverables`, `/demo` et `/webhooks` sont proxifiés, donc
  * `src/api.ts` n'utilise que des URLs relatives et il n'y a aucun CORS à
  * configurer côté navigateur.
+ *
+ * En production, l'app est montée sous `/app/` : la racine du domaine sert la
+ * page produit (`apps/landing`), et l'API sert les deux.
  */
 const apiOrigin = process.env["PREVIEWPAY_API_ORIGIN"] ?? "http://localhost:3000";
 
@@ -18,7 +21,8 @@ const proxy: Record<string, string> = {
   "/webhooks": apiOrigin,
 };
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  base: command === "build" ? "/app/" : "/",
   plugins: [react()],
   server: {
     port: 5173,
@@ -33,4 +37,4 @@ export default defineConfig({
     outDir: "dist",
     sourcemap: true,
   },
-});
+}));

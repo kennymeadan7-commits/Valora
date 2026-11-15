@@ -4,14 +4,22 @@ Objectif : une URL publique qui montre le parcours complet (import PDF → aper�
 caviardé → paiement Mobile Money simulé → fichier débloqué), sans dépendre de la
 sandbox FedaPay.
 
-## 1. Un seul processus
+## 1. Un seul processus, deux pages
 
-Quand `apps/web/dist` existe, l'API le sert elle-même : une seule URL, aucun
-CORS, aucun réglage d'API côté front.
+Quand les builds existent, l'API sert elle-même :
+
+| Chemin | Contenu |
+| --- | --- |
+| `/` | page produit (`apps/landing/`, HTML statique) |
+| `/app/` | démonstration Valora CV (`apps/web/dist`, build Vite avec `base: "/app/"`) |
+| `/demo`, `/deliverables`, `/webhooks` | API |
+
+Une seule URL, aucun CORS, aucun réglage d'API côté front.
 
 ```sh
 pnpm build                                   # paquets du SDK
-pnpm --filter @previewpay/demo-web build     # front → apps/web/dist
+pnpm --filter @previewpay/demo-web build     # démo → apps/web/dist (base /app/)
+# la page produit est statique : apps/landing/, rien à compiler
 node scripts/build-api.mjs                   # API → apps/api/dist/server.mjs
 STORAGE=memory PAYMENT_PROVIDER=mock node apps/api/dist/server.mjs
 # → http://localhost:3000 sert l'API et l'interface
