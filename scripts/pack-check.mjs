@@ -14,7 +14,7 @@
 import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
@@ -23,7 +23,9 @@ const strict = args.includes("--strict");
 const outIndex = args.indexOf("--out");
 const out =
   outIndex >= 0 && args[outIndex + 1]
-    ? args[outIndex + 1]
+    ? // `pnpm pack` tourne avec `cwd` dans le paquet : un chemin relatif
+      // écrirait les tarballs dans `packages/<paquet>/.packs`. On le fixe ici.
+      resolve(root, args[outIndex + 1])
     : mkdtempSync(join(tmpdir(), "previewpay-pack-"));
 mkdirSync(out, { recursive: true });
 
