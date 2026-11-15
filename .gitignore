@@ -47,3 +47,6 @@ env/
 Thumbs.db
 *.swp
 .packs/
+
+# Configuration locale d outillage
+.claude/
